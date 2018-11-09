@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+two-neurons-worm
+This is an attempt of creating a worm that find it's food using only
+two neurons:
+https://phys.org/news/2018-07-reveals-complex-math-worms-food.html
+
+Copyright (C) 2017  Luiz Eduardo Amaral - <luizamaral306@gmail.com>
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html>
+
+<head>
+  <title>TWO NEURONS WORM</title>
+  <meta name="description" content="This is an attempt of creating a worm that find it's food using only two neurons.">
+  <link id="favicon" rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
+  <script src="script.js"></script>
+
+  <!-- twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="@ArmlessJohn404" />
+  <meta name="twitter:creator" content="@ArmlessJohn404" />
+  <meta name="twitter:title" content="HAMURABI ALMOST FROM SCRATCH">
+  <meta name="twitter:description" content="This is an attempt of creating a worm that find it's food using only two neurons.">
+  <meta name="twitter:image" content="https://github.com/ArmlessJohn404/tetris-almost-from-scratch/raw/master/assets/opengraph.png">
+  <!-- opengraph -->
+  <meta property="og:title" content="HAMURABI ALMOST FROM SCRATCH" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://armlessjohn404.github.io/tetris-almost-from-scratch/" />
+  <meta property="og:image" content="https://github.com/ArmlessJohn404/tetris-almost-from-scratch/raw/master/assets/opengraph.png" />
+  <meta property="og:image:width" content="925" />
+  <meta property="og:image:height" content="720" />
+  <meta property="og:description" content="This is an attempt of creating a worm that find it's food using only two neurons." />
+
+  <!--  Schema.org -->
+  <meta itemprop="name" content="HAMURABI ALMOST FROM SCRATCH" />
+  <meta itemprop="description" content="This is an attempt of creating a worm that find it's food using only two neurons.">
+  <meta itemprop="image" content="https://github.com/ArmlessJohn404/tetris-almost-from-scratch/raw/master/assets/opengraph.png" />
+
+</head>
+
+<body onload="start()">
+  <div class="container">
+    <div class="left-pane">
+      <h1>Two Neurons Worm</h1>
+      <h3>Elapsed: <span id="elapsed-span"></span></h3>
+      <h3>Generation: <span id="generation-span"></span></h3>
+      <h3>Top Worms</h3>
+      <div>
+        <table>
+          <tr>
+            <th>Worm</th>
+            <th>Belly</th>
+          </tr>
+          <tr><td id="worm0-name"></td><td id="worm0-belly"></td></tr>
+          <tr><td id="worm1-name"></td><td id="worm1-belly"></td></tr>
+          <tr><td id="worm2-name"></td><td id="worm2-belly"></td></tr>
+          <tr><td id="worm3-name"></td><td id="worm3-belly"></td></tr>
+          <tr><td id="worm4-name"></td><td id="worm4-belly"></td></tr>
+        </table>
+      </div>
+      <h3>Top Ancestors</h3>
+      <div>
+        <table>
+          <tr>
+            <th>Worm</th>
+            <th>Breed</th>
+          </tr>
+          <tr><td id="ancestor0-name"></td><td id="ancestor0-breed"></td></tr>
+          <tr><td id="ancestor1-name"></td><td id="ancestor1-breed"></td></tr>
+          <tr><td id="ancestor2-name"></td><td id="ancestor2-breed"></td></tr>
+          <tr><td id="ancestor3-name"></td><td id="ancestor3-breed"></td></tr>
+          <tr><td id="ancestor4-name"></td><td id="ancestor4-breed"></td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="main-div">
+      <canvas class="main-canvas" id="main-canvas">
+      </canvas>
+    </div>
+    <div class="right-pane">
+      oidfod
+    </div>
+  </div>
+  <div class="footer">
+    <p>
+      <a href="https://github.com/ArmlessJohn404/tetris-almost-from-scratch">
+        <img src="assets/GitHub-Mark-Light-32px.png" /><span>Check it on GitHub!</span>
+      </a>
+    </p>
+    <p>
+      Copyright (c) 2017 Luiz Eduardo Amaral -
+      <a href="mailto:luizamaral306@gmail.com?Subject=tetris-almost-from-scratch">
+        &lt;luizamaral306@gmail.com&gt;
+      </a>
+    </p>
+    <p>
+      This software is under a
+      <a href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU GPL3</a> license. Have fun!
+      <span style="font-size: 2em; vertical-align: top;">😉</span>
+    </p>
+  </div>
+</body>
+
+</html>
