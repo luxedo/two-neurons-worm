@@ -28,14 +28,18 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  /* text-align: center; */
+}
+
+th, td {
+  padding-left: 15px;
+  text-align: left;
 }
 
 .container {
   display: flex;
 }
 
-.container > div {
+.container>div {
   flex: 1;
   margin-bottom: 3em;
   margin-top: 3em;
@@ -51,4 +55,70 @@ html, body {
 
 .left-pane {
   margin-left: 5em;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.underline {
+  text-decoration: underline;
+}
+
+.hide {
+  display: none;
+}
+
+.run-btn {
+  display: inline;
+  font-size: 5em;
+}
+
+.run-btn>div {
+  display: table-cell;
+}
+
+.stop-btn {
+  font-size: 3em;
+  vertical-align: text-bottom;
+}
+
+.reset-btn {
+  font-size: 6em;
+}
+
+.active-btn {
+  color: #888;
+}
+
+.play-pause-btn {
+  vertical-align: sub;
+}
+
+.run-btn:hover {
+  color: #888;
+}
+
+.run-btn:active {
+  color: #444;
+}
+
+.noselect {
+  -webkit-touch-callout: none;
+  /* iOS Safari */
+  -webkit-user-select: none;
+  /* Safari */
+  -khtml-user-select: none;
+  /* Konqueror HTML */
+  -moz-user-select: none;
+  /* Firefox */
+  -ms-user-select: none;
+  /* Internet Explorer/Edge */
+  user-select: none;
+  /* Non-prefixed version, currently
+                        supported by Chrome and Opera */
+}
+
+.footer {
+  text-align: center;
 }

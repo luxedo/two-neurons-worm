@@ -28,14 +28,18 @@ const WORM_SCALE = 0.8;
 const FOOD_WIDTH = 20;
 const FOOD_HEIGHT = 20;
 const FOOD_SCALE = 0.5;
-const NUMBER_WORMS = 100;
-const NUMBER_FOOD = 200;
+const NUMBER_WORMS = 20;
+const NUMBER_FOOD = 100;
 const MAX_STEP = 5;
 const MIN_AMMOUNT = 1;
 const MAX_AMMOUNT = 50;
 const EAT_DISTANCE = 20;
-const TICK_TIME = 10;
-const GENERATION_TIMEOUT = 5;
+const TICK_TIME = 50;
+const GENERATION_MAXITER = 500;
+const PERCENTAGE_RANDOM_WORMS = 0.1;
+const SOFT_BORDER = 20;
+const FONT_STYLE = "monospace";
+const FONT_SIZE = 26;
 const worm_sprite_images_paths = [
   "./assets/worm-medium.svg", "./assets/worm-small.svg",
   "./assets/worm-medium.svg", "./assets/worm-large.svg",
@@ -46,35 +50,38 @@ const food_sprite_images_paths = [
 ];
 var names = [];
 
+var foodEaten = 0;
 var numberOfGenerations = 0;
+var pauseSimulation = true;
+var stopSimulation = true;
+var stopGeneration = false;
+var foods;
+var worms;
+var mainInterval;
+var ticks = 0;
+var ctx;
 
 /* Main function */
 function start() {
   var c = document.getElementById("main-canvas");
   c.width = CANVAS_SIZE;
   c.height = CANVAS_SIZE;
-  var ctx = c.getContext("2d");
+  ctx = c.getContext("2d");
   ctx.shadowBlur = SHADOW_BLUR;
+  ctx.font = `${FONT_SIZE}px ${FONT_STYLE}`;
 
   loadJSON('./assets/names.json', response => {
     names = JSON.parse(response);
-
-    var foods = randomFoods(NUMBER_FOOD, food_sprite_images_paths, ctx);
-    var worms = randomWorms(NUMBER_WORMS, worm_sprite_images_paths, ctx);
-
-    var started = Date.now();
-    document.getElementById("elapsed-span").textContent = "00:00:00";
-    setInterval(() => {
-      var now = new Date(Date.now() - started);
-      document.getElementById("elapsed-span").textContent = now.toUTCString().match(/\d{2}:\d{2}:\d{2}/);
-    }, 200);
-    runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprite_images_paths, ctx);
+    reset();
+    play();
+    // setTimeout(pause, TICK_TIME);
   });
 }
 
 /* Classes */
 class Worm {
-  constructor(x, y, weights, stepSize, azimuth, sprite_images_paths, ctx, shadowColor, name, generation) {
+  constructor(x, y, weights, stepSize, azimuth, sprite_images_paths, ctx,
+    shadowColor, firstName, lastName, generation, ancestorGen) {
     this.x = x;
     this.y = y;
     this.stepSize = stepSize;
@@ -89,8 +96,10 @@ class Worm {
     this.shadowColor = shadowColor;
     this.memory = 0;
     this.weights = weights;
-    this.name = name;
-    this.generation = generation;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.generation = generation || 0;
+    this.ancestorGen = ancestorGen || 0;
     this.belly = 0;
     this.sizeX = WORM_WIDTH * (Math.random() * 0.2 + 0.9);
     this.sizeY = WORM_HEIGHT * (Math.random() * 0.2 + 0.9);
@@ -149,8 +158,8 @@ class Worm {
       if (distance(this.x, this.y, cur.x, cur.y) < EAT_DISTANCE) {
         acc.push(cur);
         this.belly++;
-        this.sizeX *= 1.1;
-        this.sizeY *= 1.1;
+        this.sizeX *= 1.05;
+        this.sizeY *= 1.05;
       }
       return acc;
     }, []);
@@ -223,14 +232,14 @@ function random_bm(mean, variance) {
 }
 
 /* Initialize random foods */
-function randomFoods(number, food_sprite_images_paths, ctx) {
+function randomFoods(number, food_sprite_images_paths) {
   var foods = [];
   for (var i = 0; i < number; i++) {
     var ammount = (Math.random() * (MAX_AMMOUNT - MIN_AMMOUNT)) + MIN_AMMOUNT;
     var factorX = FOOD_WIDTH * FOOD_SCALE * Math.log(ammount);
     var factorY = FOOD_HEIGHT * FOOD_SCALE * Math.log(ammount);
-    var x = (Math.random() * CANVAS_SIZE - factorX) + factorX / 2;
-    var y = (Math.random() * CANVAS_SIZE - factorY) + factorY / 2;
+    var x = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
+    var y = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
     var green = Math.floor(Math.random() * 127).toString(16);
     var blue = Math.floor(Math.random() * 255).toString(16);
     green = green.length == 2 ? green : "0" + green;
@@ -243,15 +252,15 @@ function randomFoods(number, food_sprite_images_paths, ctx) {
 }
 
 /* Initialize random foods */
-function randomWorms(number, worm_sprite_images_paths, ctx) {
+function randomWorms(number, worm_sprite_images_paths) {
   var worms = new Array(number).fill(0);
-  return worms.map(() => createRandomWorm(worm_sprite_images_paths, ctx));
+  return worms.map(() => createRandomWorm(worm_sprite_images_paths));
 }
 
 
-function createRandomWorm(worm_sprite_images_paths, ctx) {
-  var x = Math.random() * CANVAS_SIZE;
-  var y = Math.random() * CANVAS_SIZE;
+function createRandomWorm(worm_sprite_images_paths) {
+  var x = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
+  var y = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
   var stepSize = Math.random() * MAX_STEP;
   var azimuth = Math.random() * 2 * Math.PI;
   var weights = {
@@ -265,19 +274,27 @@ function createRandomWorm(worm_sprite_images_paths, ctx) {
   var blue = Math.floor(Math.random() * 127).toString(16);
   red = red.length == 2 ? red : "0" + red;
   blue = blue.length == 2 ? blue : "0" + blue;
-  var color = "#" + red + "FF" + blue;
+  var color = `#${red}FF${blue}`;
   var firstName = names[Math.floor(Math.random() * names.length)].first_name;
   var lastName = names[Math.floor(Math.random() * names.length)].last_name;
-  var name = `${firstName} ${lastName}`;
-  var worm = new Worm(x, y, weights, stepSize, azimuth, worm_sprite_images_paths, ctx, color, name, 0);
+  var worm = new Worm(x, y, weights, stepSize, azimuth, worm_sprite_images_paths, ctx, color, firstName, lastName, 0, numberOfGenerations);
   return worm;
 }
 
 
 /* Reproduce most fit worms */
-function reproduceWorms(worms, worm_sprite_images_paths, ctx) {
+function reproduceWorms(worms, worm_sprite_images_paths) {
   var number = worms.length;
   var newWorms = new Array(number).fill(0);
+  var larvae = computeChildren(worms);
+  newWorms = newWorms.map((_, index) => {
+    return breedWorm(worms[larvae[index]], worm_sprite_images_paths);
+  });
+  return newWorms;
+}
+
+function computeChildren(worms) {
+  var number = worms.length;
 
   worms = worms.filter(worm => worm.belly !== 0);
   worms.sort((a, b) => b.belly - a.belly);
@@ -287,62 +304,62 @@ function reproduceWorms(worms, worm_sprite_images_paths, ctx) {
     return acc;
   }, 0);
   var larvae = worms.reduce((acc, worm, index) => {
-    var numberOfChildren = Math.floor(worm.belly / totalFood * number);
+    var numberOfChildren = Math.ceil(worm.belly / totalFood * number);
     var children = new Array(numberOfChildren).fill(index);
     acc.push(...children);
     return acc;
-  }, []);
-  newWorms = newWorms.map((_, index) => {
-    return breedWorm(worms[index], worm_sprite_images_paths, ctx);
-  });
-  return newWorms;
+  }, []).slice(0, Math.floor(number * (1-PERCENTAGE_RANDOM_WORMS)));
+  return larvae;
 }
 
-function breedWorm(worm, worm_sprite_images_paths, ctx) {
+function breedWorm(worm, worm_sprite_images_paths) {
   if (worm === undefined) {
-    return createRandomWorm(worm_sprite_images_paths, ctx);
+    return createRandomWorm(worm_sprite_images_paths);
   }
 
-  var x = Math.random() * CANVAS_SIZE;
-  var y = Math.random() * CANVAS_SIZE;
+  var x = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
+  var y = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
   var azimuth = Math.random() * 2 * Math.PI;
 
-  var stepSize = worm.stepSize + random_bm(0, 4);
+  var stepSize = worm.stepSize + random_bm(0, 1);
   stepSize = stepSize > MAX_STEP ? MAX_STEP : stepSize;
   stepSize = stepSize < 0 ? -stepSize : stepSize;
 
   var weights = {
-    b1: worm.weights.b1 + random_bm(0, 2),
-    w11: worm.weights.w11 + random_bm(0, 2),
-    w12: worm.weights.w12 + random_bm(0, 2),
-    b2: worm.weights.b2 + random_bm(0, 2),
-    w21: worm.weights.w21 + random_bm(0, 2)
+    b1: worm.weights.b1 + random_bm(0, 0.5),
+    w11: worm.weights.w11 + random_bm(0, 0.5),
+    w12: worm.weights.w12 + random_bm(0, 0.5),
+    b2: worm.weights.b2 + random_bm(0, 0.5),
+    w21: worm.weights.w21 + random_bm(0, 0.5)
   };
   var color = worm.shadowColor;
   var red = (parseInt(color.slice(1, 3), 16) + Math.floor(random_bm(0, 10)) % 256).toString(16);
   var blue = (parseInt(color.slice(5), 16) + Math.floor(random_bm(0, 10)) % 256).toString(16);
   red = red.length == 2 ? red : "0" + red;
   blue = blue.length == 2 ? blue : "0" + blue;
-  color = "#" + red + "FF" + blue;
-  var name = worm.name;
+  color = `#${red}FF${blue}`;
+  var firstName = names[Math.floor(Math.random() * names.length)].first_name;
+  var lastName = worm.lastName;
   var gen = worm.generation + 1;
-  // if (name.split(" ").length == 2) {
-  //   name += " I";
-  // } else {
-  //   name = name.split(" ").slice(0, 2).join(" ") + " " + romanize(numberOfGenerations);
-  // }
-  return new Worm(x, y, weights, stepSize, azimuth, worm_sprite_images_paths, ctx, color, name, gen);
+  var ancestorGen = worm.ancestorGen;
+  return new Worm(x, y, weights, stepSize, azimuth, worm_sprite_images_paths, ctx, color, firstName, lastName, gen, ancestorGen);
 }
 
-function runGeneration(foods, worms, timeout, ctx) {
+function runGeneration(foods, worms, maxiter) {
+  var iter = 0;
+  var totalWorms = worms.length;
+  var totalFood = foods.length;
   var promise = new Promise(function(resolve) {
-    timeout = Date.now() + timeout * 1000;
-    var interval = setInterval(() => {
+    mainInterval = setInterval(() => {
+      if (pauseSimulation) {
+        return;
+      }
+      iter++;
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
       var eaten = [];
       worms.map(worm => {
         worm.think(foods);
-        worm.move(worm.stepSize, worm.azimuth, [0, 0, CANVAS_SIZE, CANVAS_SIZE]);
+        worm.move(worm.stepSize, worm.azimuth, [SOFT_BORDER, SOFT_BORDER, CANVAS_SIZE-SOFT_BORDER, CANVAS_SIZE-SOFT_BORDER]);
         eaten.push(...worm.eat(foods));
         worm.draw(worm.shadowColor);
       });
@@ -350,43 +367,159 @@ function runGeneration(foods, worms, timeout, ctx) {
       foods.map(food => {
         food.draw(food.shadowColor);
       });
-      if (Date.now() > timeout | foods.length == 0) {
-        clearInterval(interval);
+      if (iter > maxiter || foods.length == 0 || stopSimulation) {
+        clearInterval(mainInterval);
         resolve();
       }
-      worms.sort((a, b) => b.belly - a.belly).slice(0, 5).map((worm, index) => {
-        document.getElementById("worm" + index + "-name").textContent = `${worm.name} ${romanize(worm.generation) || ""}`;
-        document.getElementById("worm" + index + "-belly").textContent = worm.belly;
-      });
+      drawTopWormsTable(worms);
+      ticks++;
+      var totalEaten = totalFood - foods.length;
+      document.getElementById("elapsed-span").textContent = new Date(ticks * TICK_TIME).toUTCString().match(/\d{2}:\d{2}:\d{2}/);
+      document.getElementById("total-worms-span").textContent = totalWorms;
+      document.getElementById("total-food-span").textContent = totalFood;
+      document.getElementById("total-eaten-span").textContent = `${totalEaten}\t(${(100*totalEaten/totalFood).toFixed(2)}% - ${(totalEaten/totalWorms).toFixed(2)}a/w)`;
     }, TICK_TIME);
   });
   return promise;
 }
 
-
-function runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprite_images_paths, ctx) {
-  document.getElementById("generation-span").textContent = "" + numberOfGenerations;
-  console.log(worms
-    .map(worm => worm.name)
-    .reduce((acc, name) => {
-      if (acc.hasOwnProperty(name)) {
-        acc[name]++;
-      } else {
-        acc[name] = 1;
-      }
-      return acc;
-    }, {})
-    .map(item => {
-      console.log(item);
-    })
-  );
-  var generation = runGeneration(foods, worms, GENERATION_TIMEOUT, ctx);
-  generation.then(() => {
-    worms = reproduceWorms(worms, worm_sprite_images_paths, ctx);
-    foods = randomFoods(foods.length, food_sprite_images_paths, ctx);
-    runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprite_images_paths, ctx);
+function drawTopWormsTable(worms) {
+  worms.sort((a, b) => b.belly - a.belly).slice(0, 5).map((worm, index) => {
+    var firstName = worm.firstName;
+    var lastName = worm.lastName;
+    document.getElementById(`worm${index}-name`).parentElement.style.color = worm.shadowColor;
+    document.getElementById(`worm${index}-name`).textContent = `${firstName} ${lastName} ${romanize(worm.generation) || ""}`;
+    document.getElementById(`worm${index}-belly`).textContent = worm.belly;
+    if (index == 0) {
+      drawLegendInWorm(worm, `Glutton\n${worm.firstName} ${worm.lastName}`);
+    }
   });
-  numberOfGenerations++;
+}
+
+function drawLegendInWorm(worm, legend) {
+  ctx.fillStyle = "#FFF";
+  ctx.shadowColor = worm.shadowColor;
+  ctx.beginPath();
+  ctx.strokeStyle = "#FFF";
+  ctx.lineWidth = 2;
+  ctx.moveTo(worm.x, worm.y);
+  var size = (FONT_SIZE-8)*legend.split("\n")[legend.split("\n").length-1].length;
+  if (worm.x>CANVAS_SIZE-size-SOFT_BORDER) {
+    ctx.lineTo(worm.x - 35, worm.y + 25);
+    ctx.lineTo(worm.x - 200, worm.y + 25);
+    ctx.stroke();
+    legend.split("\n").reverse().map((text, index) => ctx.fillText(text, worm.x-size, worm.y+20-index*25));
+  } else {
+    ctx.lineTo(worm.x + 35, worm.y + 25);
+    ctx.lineTo(worm.x + 200, worm.y + 25);
+    ctx.stroke();
+    legend.split("\n").reverse().map((text, index) => ctx.fillText(text, worm.x+35, worm.y+20-index*25));
+  }
+}
+
+function runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprite_images_paths) {
+  document.getElementById("generation-span").textContent = "" + numberOfGenerations;
+  runGeneration(foods, worms, GENERATION_MAXITER).then(() => {
+    var wormsOld = worms.slice(0);
+    var foodsOld = foods.slice(0);
+    worms = reproduceWorms(worms, worm_sprite_images_paths);
+    foods = randomFoods(foods.length, food_sprite_images_paths);
+    drawAncestorTable(worms);
+    if (stopGeneration) {
+      drawStats(wormsOld, foodsOld);
+      pause();
+    }
+    numberOfGenerations++;
+    runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprite_images_paths);
+  });
+}
+
+function drawStats(wormsOld, foods) {
+  var frames = 20;
+  var speed = 20;
+  var totalFood = foods.length;
+
+  var larvae = computeChildren(wormsOld);
+  var eaten = wormsOld.reduce((acc, worm) => worm.belly+acc, 0);
+  var totalWorms = wormsOld.length;
+  var border =  {
+    x0: 50,
+    x1: CANVAS_SIZE-50,
+    y0: 80,
+    y1: 780
+  };
+  var wormsBorder = wormsOld.slice(0).filter(worm => !(worm.x>border.x0 && worm.x<border.x1 && worm.y>border.y0 && worm.y<border.y1));
+  var foodsBorder = foods.slice(0).filter(food => !(food.x>border.x0 && food.x<border.x1 && food.y>border.y0 && food.y<border.y1));
+
+  wormsOld = wormsOld.sort((a, b) => b.belly-a.belly).slice(0, 5).map((worm, index) => {
+    var fx = CANVAS_SIZE/2-250;
+    var fy = (100*index + 200);
+    var slope = (fy - worm.y)/(fx - worm.x);
+    worm.dx = (fx-worm.x)/20;
+    worm.dy = (slope*worm.dx);
+    worm.children = larvae.filter(larva => larva==index).length;
+    drawLegendInWorm(worm, `${worm.firstName} ${worm.lastName} ${romanize(worm.generation) || ""}`);
+    return worm;
+  });
+  setTimeout(() => {
+    for (var i=0; i<20; i++) {
+      setTimeout((wormsOld) => {
+        ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+        wormsOld.map((worm, index) => {
+          worm.x += worm.dx;
+          worm.y += worm.dy;
+          worm.draw(worm.shadowColor);
+          drawLegendInWorm(worm, `${worm.firstName} ${worm.lastName} ${romanize(worm.generation) || ""}`);
+        });
+      }, i*speed, wormsOld);
+    }
+  }, 500);
+  setTimeout((wormsOld)=> {
+    wormsBorder.map(worm => worm.draw(worm.shadowColor));
+    foodsBorder.map(food => food.draw(food.shadowColor));
+    var ordinal = ["1st", "2nd", "3rd", "4th", "5th"];
+    ctx.font = `50px ${FONT_STYLE}`;
+    ctx.shadowColor = "#F00";
+    ctx.fillText("Top Worms", 330, 100);
+    ctx.font = `${FONT_SIZE}px ${FONT_STYLE}`;
+    ctx.fillText(`${(100*eaten/totalFood).toFixed(2)}% apples eaten`, 190, 700);
+    ctx.fillText(`${eaten/totalWorms} apples/worm`, 190, 740);
+    ctx.fillText("apples", 570, 160);
+    ctx.fillText("breed", 700, 160);
+    wormsOld.forEach((worm, index) => {
+      ctx.shadowColor = worm.shadowColor;
+      ctx.fillText(ordinal[index], worm.x-100, worm.y);
+      ctx.fillText(`${worm.belly}`, worm.x+410, worm.y);
+      ctx.fillText(`${worm.children}`, worm.x+530, worm.y);
+    });
+  }, 500+speed*frames, wormsOld);
+}
+
+function drawAncestorTable(worms) {
+  new Array(5).fill(0).map((_, index) => {
+    document.getElementById(`ancestor${index}-name`).parentElement.style.color = "#FFF";
+    document.getElementById(`ancestor${index}-name`).textContent = "";
+    document.getElementById(`ancestor${index}-gen`).textContent = "";
+    document.getElementById(`ancestor${index}-breed`).textContent = "";
+  });
+  Object.entries(worms
+      .reduce((acc, worm) => {
+        if (acc.hasOwnProperty(worm.lastName)) acc[worm.lastName].breed++;
+        else acc[worm.lastName] = {
+          breed: 1,
+          ancestorGen: worm.ancestorGen,
+          shadowColor: worm.shadowColor
+        };
+        return acc;
+      }, {}))
+    .sort((a, b) => b[1].breed - a[1].breed)
+    .slice(0, 5)
+    .map((worm, index) => {
+      document.getElementById(`ancestor${index}-name`).parentElement.style.color = worm[1].shadowColor;
+      document.getElementById(`ancestor${index}-name`).textContent = worm[0];
+      document.getElementById(`ancestor${index}-gen`).textContent = worm[1].ancestorGen || "Pioneer";
+      document.getElementById(`ancestor${index}-breed`).textContent = worm[1].breed;
+    });
 }
 
 
@@ -450,4 +583,37 @@ function deromanize(str) {
   while (m = token.exec(str))
     num += key[m[0]];
   return num;
+}
+
+function play() {
+  if (stopSimulation) {
+    runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprite_images_paths);
+  }
+  pauseSimulation = false;
+  stopSimulation = false;
+}
+
+function togglePlay() {
+  document.querySelector(".play-pause-btn").classList.toggle("active-btn");
+  if (pauseSimulation) play();
+  else pause();
+}
+
+function toggleStop() {
+  stopGeneration = !stopGeneration;
+  document.querySelector(".stop-btn").classList.toggle("active-btn");
+}
+
+function pause() {
+  pauseSimulation = true;
+}
+
+function reset() {
+  document.getElementById("elapsed-span").textContent = "00:00:00";
+  stopSimulation = true;
+  clearInterval(mainInterval);
+  foods = randomFoods(NUMBER_FOOD, food_sprite_images_paths);
+  worms = randomWorms(NUMBER_WORMS, worm_sprite_images_paths);
+  play();
+  setTimeout(pause, TICK_TIME);
 }

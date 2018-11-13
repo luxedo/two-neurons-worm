@@ -22,10 +22,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <head>
   <title>TWO NEURONS WORM</title>
   <meta name="description" content="This is an attempt of creating a worm that find it's food using only two neurons.">
-  <link id="favicon" rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link id="favicon" rel="icon" href="./assets/favicon.ico" type="image/x-icon">
   <meta charset="utf-8">
   <link rel="stylesheet" href="style.css">
-  <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
   <script src="script.js"></script>
 
   <!-- twitter -->
@@ -54,35 +53,95 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <body onload="start()">
   <div class="container">
     <div class="left-pane">
-      <h1>Two Neurons Worm</h1>
-      <h3>Elapsed: <span id="elapsed-span"></span></h3>
-      <h3>Generation: <span id="generation-span"></span></h3>
-      <h3>Top Worms</h3>
-      <div>
-        <table>
+      <div class="general-info-div">
+        <h1>Two Neurons Worm</h1>
+        <h3>Elapsed: <span id="elapsed-span"></span></h3>
+        <h3>Generation: <span id="generation-span"></span></h3>
+        <h3>Apples: <span id="total-food-span"></span> | Worms: <span id="total-worms-span"></span></h3>
+        <h3>Eaten: <span id="total-eaten-span"></span></h3>
+        <!-- <h3>Food eaten: <span id="food-span"></span></h3> -->
+      </div>
+      <div class="run-div">
+        <div>
+          <div class="run-btn play-pause-btn noselect cursor-pointer" onclick="togglePlay()">⏯</div>
+          <div class="run-btn stop-btn noselect cursor-pointer" onclick="toggleStop()">⬛</div>
+          <div class="run-btn reset-btn noselect cursor-pointer" onclick="reset()">↺</div>
+        </div>
+      </div>
+      <div class="top-worms-div">
+        <h3 style="margin-bottom: 0; display: inline;">Top Worms </h3><span class="cursor-pointer underline noselect" onclick="document.getElementById('top-worms-table').classList.toggle('hide');">show</span>
+        <table id="top-worms-table">
           <tr>
+            <th>#</th>
             <th>Worm</th>
             <th>Belly</th>
           </tr>
-          <tr><td id="worm0-name"></td><td id="worm0-belly"></td></tr>
-          <tr><td id="worm1-name"></td><td id="worm1-belly"></td></tr>
-          <tr><td id="worm2-name"></td><td id="worm2-belly"></td></tr>
-          <tr><td id="worm3-name"></td><td id="worm3-belly"></td></tr>
-          <tr><td id="worm4-name"></td><td id="worm4-belly"></td></tr>
+          <tr>
+            <td>1</td>
+            <td id="worm0-name"></td>
+            <td id="worm0-belly"></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td id="worm1-name"></td>
+            <td id="worm1-belly"></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td id="worm2-name"></td>
+            <td id="worm2-belly"></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td id="worm3-name"></td>
+            <td id="worm3-belly"></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td id="worm4-name"></td>
+            <td id="worm4-belly"></td>
+          </tr>
         </table>
       </div>
-      <h3>Top Ancestors</h3>
-      <div>
-        <table>
+      <div class="top-ancestors-div">
+        <h3 style="margin-bottom: 0; display: inline;">Top Ancestors </h3><span class="cursor-pointer underline noselect" onclick="document.getElementById('top-ancestor-table').classList.toggle('hide');">show</span>
+        <table id="top-ancestor-table">
           <tr>
-            <th>Worm</th>
+            <th>#</th>
+            <th>Family</th>
+            <th>Gen</th>
             <th>Breed</th>
           </tr>
-          <tr><td id="ancestor0-name"></td><td id="ancestor0-breed"></td></tr>
-          <tr><td id="ancestor1-name"></td><td id="ancestor1-breed"></td></tr>
-          <tr><td id="ancestor2-name"></td><td id="ancestor2-breed"></td></tr>
-          <tr><td id="ancestor3-name"></td><td id="ancestor3-breed"></td></tr>
-          <tr><td id="ancestor4-name"></td><td id="ancestor4-breed"></td></tr>
+          <tr>
+            <td>1</td>
+            <td id="ancestor0-name"></td>
+            <td id="ancestor0-gen"></td>
+            <td id="ancestor0-breed"></td>
+          </tr>
+          <tr>
+            <td>2</td>
+            <td id="ancestor1-name"></td>
+            <td id="ancestor1-gen"></td>
+            <td id="ancestor1-breed"></td>
+          </tr>
+          <tr>
+            <td>3</td>
+            <td id="ancestor2-name"></td>
+            <td id="ancestor2-gen"></td>
+            <td id="ancestor2-breed"></td>
+          </tr>
+          <tr>
+            <td>4</td>
+            <td id="ancestor3-name"></td>
+            <td id="ancestor3-gen"></td>
+            <td id="ancestor3-breed"></td>
+          </tr>
+          <tr>
+            <td>5</td>
+            <td id="ancestor4-name"></td>
+            <td id="ancestor4-gen"></td>
+            <td id="ancestor4-breed"></td>
+          </tr>
         </table>
       </div>
     </div>
@@ -91,7 +150,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       </canvas>
     </div>
     <div class="right-pane">
-      oidfod
     </div>
   </div>
   <div class="footer">

@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="22.4"
-     inkscape:cx="-4.0730149"
-     inkscape:cy="8.1899841"
+     inkscape:zoom="31.678384"
+     inkscape:cx="5.7881305"
+     inkscape:cy="7.550072"
      inkscape:document-units="mm"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -65,26 +65,6 @@
        style="fill:#ffffff;fill-opacity:0.74901961;stroke:#ffffff;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.74901961"
        id="path910"
        d="m 2.4095982,294.11232 c 0.00275,-0.0632 0.016792,-0.12424 0.0322,-0.18525 0.014822,-0.0445 0.033494,-0.0872 0.056827,-0.1279 0.020024,-0.0389 0.046452,-0.0741 0.075709,-0.10648 0.018273,-0.0258 0.037329,-0.0513 0.056072,-0.0769 0.022203,-0.0281 0.049252,-0.0519 0.072758,-0.0787 0.022569,-0.0228 0.047625,-0.0435 0.065285,-0.0706 0.022762,-0.0322 0.049715,-0.0609 0.074781,-0.0912 0.023156,-0.026 0.049881,-0.0487 0.072885,-0.0749 0.033368,-0.0325 0.072502,-0.057 0.1159946,-0.0732 0.051393,-0.0145 0.1051118,-0.018 0.1580653,-0.0132 0.027212,0.005 0.054304,0.0105 0.08173,0.0143 0.099233,0.0141 0.079327,0.15441 -0.019905,0.14034 v 0 c -0.026268,-0.004 -0.052403,-0.008 -0.078329,-0.0139 -0.03069,-0.006 -0.064117,0.002 -0.094643,0.006 -0.022421,0.006 -0.040711,0.021 -0.058572,0.0354 -0.022458,0.0239 -0.046194,0.0466 -0.068862,0.0703 -0.022807,0.0267 -0.046441,0.0526 -0.067039,0.0812 -0.022378,0.031 -0.048154,0.0589 -0.076433,0.0845 -0.021116,0.0228 -0.043458,0.0444 -0.063849,0.0679 -0.02223,0.0297 -0.043391,0.0602 -0.066378,0.0893 -0.023453,0.0231 -0.041055,0.0522 -0.056722,0.0809 -0.017285,0.0291 -0.029816,0.0598 -0.041954,0.0914 -0.012569,0.0497 -0.024761,0.099 -0.02788,0.15052 0,0.10022 -0.1417411,0.10022 -0.1417411,0 z"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:#ffffff;fill-opacity:0.74901961;stroke:#ffffff;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.74901961"
-       id="path914"
-       d="m 0.80108591,293.72074 c -0.004458,-0.0612 -0.0203946,-0.12042 -0.0318401,-0.1805 -0.0186808,-0.0985 0.12057645,-0.12489 0.13925725,-0.0264 v 0 c 0.0117438,0.0622 0.0281753,0.12352 0.0328994,0.18688 0.014174,0.0992 -0.12614237,0.11926 -0.14031647,0.02 z"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:#ffffff;fill-opacity:0.74901961;stroke:#ffffff;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.74901961"
-       id="path922"
-       d="m 3.7311128,293.80903 c -0.045394,-0.022 -0.091118,-0.0438 -0.1356476,-0.0676 -0.08817,-0.0477 -0.02077,-0.17235 0.067399,-0.12469 v 0 c 0.042905,0.0236 0.087717,0.044 0.1316369,0.0656 0.089645,0.0448 0.026257,0.1716 -0.063389,0.12677 z"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:#ffffff;fill-opacity:0.74901961;stroke:#ffffff;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.74901961"
-       id="path924"
-       d="m 3.0716561,292.24095 c -0.031238,-0.0491 -0.055511,-0.10185 -0.074284,-0.15676 -0.031897,-0.095 0.1024739,-0.14012 0.1343713,-0.0451 v 0 c 0.01415,0.0433 0.033947,0.0845 0.057848,0.12325 0.055596,0.0834 -0.06234,0.16201 -0.1179356,0.0786 z"
-       inkscape:connector-curvature="0" />
-    <path
-       style="fill:#ffffff;fill-opacity:0.74901961;stroke:#ffffff;stroke-width:0.1;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.74901961"
-       id="path926"
-       d="m 2.078869,292.00983 c -7.057e-4,-0.0561 0.00654,-0.11224 0.019037,-0.1668 0.023532,-0.0974 0.1613108,-0.0642 0.1377789,0.0333 v 0 c -0.0114,0.0432 -0.014856,0.089 -0.015075,0.13352 0,0.10022 -0.1417411,0.10022 -0.141741,0 z"
        inkscape:connector-curvature="0" />
   </g>
 </svg>
