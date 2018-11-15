@@ -25,6 +25,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   <link id="favicon" rel="icon" href="./assets/favicon.ico" type="image/x-icon">
   <meta charset="utf-8">
   <link rel="stylesheet" href="style.css">
+  <script src="https://d3js.org/d3.v5.min.js"></script>
+  <script src="https://unpkg.com/d3fc/build/d3fc.min.js"></script>
   <script src="script.js"></script>
 
   <!-- twitter -->
@@ -58,6 +60,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <h3>Elapsed: <span id="elapsed-span"></span></h3>
         <h3>Generation: <span id="generation-span"></span></h3>
         <h3>Apples: <span id="total-food-span"></span> | Worms: <span id="total-worms-span"></span></h3>
+        <h3>Max Iter: <span id="maxiter-span"></span> | Speed: <span id="speed-span"></span></h3>
         <h3>Eaten: <span id="total-eaten-span"></span></h3>
         <!-- <h3>Food eaten: <span id="food-span"></span></h3> -->
       </div>
@@ -69,8 +72,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
       </div>
       <div class="top-worms-div">
-        <h3 style="margin-bottom: 0; display: inline;">Top Worms </h3><span class="cursor-pointer underline noselect" onclick="document.getElementById('top-worms-table').classList.toggle('hide');">show</span>
-        <table id="top-worms-table">
+        <h3 style="margin-bottom: 0; display: inline;">Top Worms </h3>
+        <span class="cursor-pointer underline noselect" onclick="document.getElementById('top-worms-table').classList.toggle('hide');">show</span>
+        <table id="top-worms-table" class="hide">
           <tr>
             <th>#</th>
             <th>Worm</th>
@@ -103,9 +107,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           </tr>
         </table>
       </div>
-      <div class="top-ancestors-div">
-        <h3 style="margin-bottom: 0; display: inline;">Top Ancestors </h3><span class="cursor-pointer underline noselect" onclick="document.getElementById('top-ancestor-table').classList.toggle('hide');">show</span>
-        <table id="top-ancestor-table">
+      <div class="top-ancestors-div" style="margin-top: 1em;">
+        <h3 style="margin-bottom: 0; display: inline;">Top Ancestors </h3>
+        <span class="cursor-pointer underline noselect" onclick="document.getElementById('top-ancestor-table').classList.toggle('hide');">show</span>
+        <table id="top-ancestor-table" class="hide">
           <tr>
             <th>#</th>
             <th>Family</th>
@@ -144,6 +149,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           </tr>
         </table>
       </div>
+      <div class="eaten-graph-div" style="margin-top: 1em;">
+        <h3 style="display: inline;">Eaten Graph <span class="toggle-eaten-graph">(%)&nbsp;&nbsp;</span><span class="toggle-eaten-graph hide">(a/w)</span> </h3>
+        <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.eaten-graph-group').forEach(node => node.classList.toggle('hide'));plotPercentGraphs();">show</span>
+        <span class="cursor-pointer underline noselect eaten-graph-group hide" onclick="togglePercentGraphs();">toggle</span>
+        <div class="eaten-graph eaten-graph-group hide graph-percent" style="margin-top: 1em;">
+        </div>
+      </div>
+      <!-- <div class="food-per-worm-graph-div graph" style="margin-top: 1em;">
+        <h3 style="margin-bottom: 0; display: inline;">Apples per Worm Graph (a/w) </h3>
+        <span class="cursor-pointer underline noselect" onclick="document.getElementById('food-per-worm-graph').classList.toggle('hide');">show</span>
+      </div> -->
     </div>
     <div class="main-div">
       <canvas class="main-canvas" id="main-canvas">

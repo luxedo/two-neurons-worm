@@ -122,3 +122,7 @@ th, td {
 .footer {
   text-align: center;
 }
+
+svg {
+  display: block;
+}

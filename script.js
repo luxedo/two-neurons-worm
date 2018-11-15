@@ -34,9 +34,9 @@ const MAX_STEP = 5;
 const MIN_AMMOUNT = 1;
 const MAX_AMMOUNT = 50;
 const EAT_DISTANCE = 20;
-const TICK_TIME = 50;
-const GENERATION_MAXITER = 500;
-const PERCENTAGE_RANDOM_WORMS = 0.1;
+const TICK_TIME = 20;
+const MAXITER = 1000;
+const PERCENTAGE_RANDOM_WORMS = 0.2;
 const SOFT_BORDER = 20;
 const FONT_STYLE = "monospace";
 const FONT_SIZE = 26;
@@ -55,6 +55,8 @@ var numberOfGenerations = 0;
 var pauseSimulation = true;
 var stopSimulation = true;
 var stopGeneration = false;
+var eatenHistory;
+var foodPerWormHistory;
 var foods;
 var worms;
 var mainInterval;
@@ -73,8 +75,6 @@ function start() {
   loadJSON('./assets/names.json', response => {
     names = JSON.parse(response);
     reset();
-    play();
-    // setTimeout(pause, TICK_TIME);
   });
 }
 
@@ -238,8 +238,8 @@ function randomFoods(number, food_sprite_images_paths) {
     var ammount = (Math.random() * (MAX_AMMOUNT - MIN_AMMOUNT)) + MIN_AMMOUNT;
     var factorX = FOOD_WIDTH * FOOD_SCALE * Math.log(ammount);
     var factorY = FOOD_HEIGHT * FOOD_SCALE * Math.log(ammount);
-    var x = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
-    var y = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
+    var x = Math.random() * (CANVAS_SIZE - 2 * SOFT_BORDER) + SOFT_BORDER;
+    var y = Math.random() * (CANVAS_SIZE - 2 * SOFT_BORDER) + SOFT_BORDER;
     var green = Math.floor(Math.random() * 127).toString(16);
     var blue = Math.floor(Math.random() * 255).toString(16);
     green = green.length == 2 ? green : "0" + green;
@@ -259,8 +259,8 @@ function randomWorms(number, worm_sprite_images_paths) {
 
 
 function createRandomWorm(worm_sprite_images_paths) {
-  var x = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
-  var y = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
+  var x = Math.random() * (CANVAS_SIZE - 2 * SOFT_BORDER) + SOFT_BORDER;
+  var y = Math.random() * (CANVAS_SIZE - 2 * SOFT_BORDER) + SOFT_BORDER;
   var stepSize = Math.random() * MAX_STEP;
   var azimuth = Math.random() * 2 * Math.PI;
   var weights = {
@@ -308,7 +308,7 @@ function computeChildren(worms) {
     var children = new Array(numberOfChildren).fill(index);
     acc.push(...children);
     return acc;
-  }, []).slice(0, Math.floor(number * (1-PERCENTAGE_RANDOM_WORMS)));
+  }, []).slice(0, Math.floor(number * (1 - PERCENTAGE_RANDOM_WORMS)));
   return larvae;
 }
 
@@ -317,8 +317,8 @@ function breedWorm(worm, worm_sprite_images_paths) {
     return createRandomWorm(worm_sprite_images_paths);
   }
 
-  var x = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
-  var y = Math.random() * (CANVAS_SIZE-2*SOFT_BORDER) + SOFT_BORDER;
+  var x = Math.random() * (CANVAS_SIZE - 2 * SOFT_BORDER) + SOFT_BORDER;
+  var y = Math.random() * (CANVAS_SIZE - 2 * SOFT_BORDER) + SOFT_BORDER;
   var azimuth = Math.random() * 2 * Math.PI;
 
   var stepSize = worm.stepSize + random_bm(0, 1);
@@ -359,7 +359,7 @@ function runGeneration(foods, worms, maxiter) {
       var eaten = [];
       worms.map(worm => {
         worm.think(foods);
-        worm.move(worm.stepSize, worm.azimuth, [SOFT_BORDER, SOFT_BORDER, CANVAS_SIZE-SOFT_BORDER, CANVAS_SIZE-SOFT_BORDER]);
+        worm.move(worm.stepSize, worm.azimuth, [SOFT_BORDER, SOFT_BORDER, CANVAS_SIZE - SOFT_BORDER, CANVAS_SIZE - SOFT_BORDER]);
         eaten.push(...worm.eat(foods));
         worm.draw(worm.shadowColor);
       });
@@ -369,7 +369,7 @@ function runGeneration(foods, worms, maxiter) {
       });
       if (iter > maxiter || foods.length == 0 || stopSimulation) {
         clearInterval(mainInterval);
-        resolve();
+        resolve(foods, worms);
       }
       drawTopWormsTable(worms);
       ticks++;
@@ -377,6 +377,8 @@ function runGeneration(foods, worms, maxiter) {
       document.getElementById("elapsed-span").textContent = new Date(ticks * TICK_TIME).toUTCString().match(/\d{2}:\d{2}:\d{2}/);
       document.getElementById("total-worms-span").textContent = totalWorms;
       document.getElementById("total-food-span").textContent = totalFood;
+      document.getElementById("maxiter-span").textContent = MAXITER;
+      document.getElementById("speed-span").textContent = (1/TICK_TIME)*100;
       document.getElementById("total-eaten-span").textContent = `${totalEaten}\t(${(100*totalEaten/totalFood).toFixed(2)}% - ${(totalEaten/totalWorms).toFixed(2)}a/w)`;
     }, TICK_TIME);
   });
@@ -403,28 +405,31 @@ function drawLegendInWorm(worm, legend) {
   ctx.strokeStyle = "#FFF";
   ctx.lineWidth = 2;
   ctx.moveTo(worm.x, worm.y);
-  var size = (FONT_SIZE-8)*legend.split("\n")[legend.split("\n").length-1].length;
-  if (worm.x>CANVAS_SIZE-size-SOFT_BORDER) {
+  var size = (FONT_SIZE - 8) * legend.split("\n")[legend.split("\n").length - 1].length;
+  if (worm.x > CANVAS_SIZE - size - SOFT_BORDER) {
     ctx.lineTo(worm.x - 35, worm.y + 25);
     ctx.lineTo(worm.x - 200, worm.y + 25);
     ctx.stroke();
-    legend.split("\n").reverse().map((text, index) => ctx.fillText(text, worm.x-size, worm.y+20-index*25));
+    legend.split("\n").reverse().map((text, index) => ctx.fillText(text, worm.x - size, worm.y + 20 - index * 25));
   } else {
     ctx.lineTo(worm.x + 35, worm.y + 25);
     ctx.lineTo(worm.x + 200, worm.y + 25);
     ctx.stroke();
-    legend.split("\n").reverse().map((text, index) => ctx.fillText(text, worm.x+35, worm.y+20-index*25));
+    legend.split("\n").reverse().map((text, index) => ctx.fillText(text, worm.x + 35, worm.y + 20 - index * 25));
   }
 }
 
 function runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprite_images_paths) {
   document.getElementById("generation-span").textContent = "" + numberOfGenerations;
-  runGeneration(foods, worms, GENERATION_MAXITER).then(() => {
+  runGeneration(foods, worms, MAXITER).then((newFoods, newWorms) => {
     var wormsOld = worms.slice(0);
     var foodsOld = foods.slice(0);
     worms = reproduceWorms(worms, worm_sprite_images_paths);
     foods = randomFoods(foods.length, food_sprite_images_paths);
     drawAncestorTable(worms);
+    eatenHistory.push((1 - newFoods.length / foods.length) * 100);
+    foodPerWormHistory.push((foods.length - newFoods.length) / worms.length);
+    plotPercentGraphs();
     if (stopGeneration) {
       drawStats(wormsOld, foodsOld);
       pause();
@@ -434,35 +439,132 @@ function runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprit
   });
 }
 
+function resampleData(data, length) {
+  // COMBAK: Improve the resampling!
+  const sampler = fc.largestTriangleThreeBucket();
+  sampler.x(d => d[0]);
+  sampler.y(d => d[1]);
+  sampler.bucketSize(data.length / length * 2);
+  return sampler(data);
+}
+
+
+function plotLine(selector, data, width, height) {
+  var maxData = Math.max(...data);
+  data = data.map((d, index) => [index, d]);
+
+  if (data.length > 2 * width) {
+    data = resampleData(data, width);
+  }
+
+  var x = d3.scaleLinear()
+    .domain([0, data[data.length - 1][0]]).nice()
+    .range([0, width]);
+  var y = d3.scaleLinear()
+    .domain([0, maxData])
+    .range([height, 0]);
+  var area = d3.area()
+    .x(d => x(d[0]))
+    .y0(y(0))
+    .y1(d => y(d[1]));
+  var line = d3.line()
+    .x(d => x(d[0]))
+    .y(d => y(d[1]))
+
+  var xAxis = g => g
+    .attr("transform", `translate(0, ${height})`)
+    .call(d3.axisBottom(x)
+      .ticks(4)
+      .tickSizeInner(-5)
+      .tickSizeOuter(0));
+
+  var yAxis = g => g
+    .call(
+      d3.axisLeft(y)
+      .ticks(4)
+      .tickSizeInner(-5)
+      .tickSizeOuter(0));
+  d3.selectAll(`${selector} > svg`).remove();
+  var svg = d3.select(selector)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+  svg.append("path")
+    .datum(data)
+    .attr("fill", "#F00")
+    .attr("opacity", "0.2")
+    .attr("d", area);
+  svg.append("path")
+    .datum(data)
+    .attr("stroke", "#F00")
+    .attr("fill", "none")
+    .attr("stroke-width", "2")
+    .attr("opacity", "0.5")
+    .attr("d", line);
+
+
+  var xAxisObj = svg.append("g")
+    .call(xAxis);
+  xAxisObj.select("path").remove();
+  xAxisObj.selectAll("text").attr("transform", `translate(0, -20)`);
+  xAxisObj.select("g > text").attr("transform", `translate(10, -20)`);
+
+  var yAxisObj = svg.append("g")
+    .call(yAxis);
+  yAxisObj.select("path").remove();
+  yAxisObj.selectAll("text").attr("transform", `translate(20, 0)`);
+  yAxisObj.select("g > text").remove();
+
+  /* Glow effect
+   * https://www.visualcinnamon.com/2016/06/glow-filter-d3-visualization.html
+   */
+  //Container for the gradients
+  var defs = svg.append("defs");
+
+  //Filter for the outside glow
+  var filter = defs.append("filter")
+    .attr("id", "glow");
+  filter.append("feGaussianBlur")
+    .attr("stdDeviation", "5")
+    .attr("result", "coloredBlur");
+  var feMerge = filter.append("feMerge");
+  feMerge.append("feMergeNode")
+    .attr("in", "coloredBlur");
+  feMerge.append("feMergeNode")
+    .attr("in", "SourceGraphic");
+  d3.selectAll("path")
+    .style("filter", "url(#glow)");
+}
+
 function drawStats(wormsOld, foods) {
   var frames = 20;
   var speed = 20;
   var totalFood = foods.length;
 
   var larvae = computeChildren(wormsOld);
-  var eaten = wormsOld.reduce((acc, worm) => worm.belly+acc, 0);
+  var eaten = wormsOld.reduce((acc, worm) => worm.belly + acc, 0);
   var totalWorms = wormsOld.length;
-  var border =  {
+  var border = {
     x0: 50,
-    x1: CANVAS_SIZE-50,
+    x1: CANVAS_SIZE - 50,
     y0: 80,
     y1: 780
   };
-  var wormsBorder = wormsOld.slice(0).filter(worm => !(worm.x>border.x0 && worm.x<border.x1 && worm.y>border.y0 && worm.y<border.y1));
-  var foodsBorder = foods.slice(0).filter(food => !(food.x>border.x0 && food.x<border.x1 && food.y>border.y0 && food.y<border.y1));
+  var wormsBorder = wormsOld.slice(0).filter(worm => !(worm.x > border.x0 && worm.x < border.x1 && worm.y > border.y0 && worm.y < border.y1));
+  var foodsBorder = foods.slice(0).filter(food => !(food.x > border.x0 && food.x < border.x1 && food.y > border.y0 && food.y < border.y1));
 
-  wormsOld = wormsOld.sort((a, b) => b.belly-a.belly).slice(0, 5).map((worm, index) => {
-    var fx = CANVAS_SIZE/2-250;
-    var fy = (100*index + 200);
-    var slope = (fy - worm.y)/(fx - worm.x);
-    worm.dx = (fx-worm.x)/20;
-    worm.dy = (slope*worm.dx);
-    worm.children = larvae.filter(larva => larva==index).length;
+  wormsOld = wormsOld.sort((a, b) => b.belly - a.belly).slice(0, 5).map((worm, index) => {
+    var fx = CANVAS_SIZE / 2 - 250;
+    var fy = (100 * index + 200);
+    var slope = (fy - worm.y) / (fx - worm.x);
+    worm.dx = (fx - worm.x) / 20;
+    worm.dy = (slope * worm.dx);
+    worm.children = larvae.filter(larva => larva == index).length;
     drawLegendInWorm(worm, `${worm.firstName} ${worm.lastName} ${romanize(worm.generation) || ""}`);
     return worm;
   });
   setTimeout(() => {
-    for (var i=0; i<20; i++) {
+    for (var i = 0; i < 20; i++) {
       setTimeout((wormsOld) => {
         ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
         wormsOld.map((worm, index) => {
@@ -471,10 +573,10 @@ function drawStats(wormsOld, foods) {
           worm.draw(worm.shadowColor);
           drawLegendInWorm(worm, `${worm.firstName} ${worm.lastName} ${romanize(worm.generation) || ""}`);
         });
-      }, i*speed, wormsOld);
+      }, i * speed, wormsOld);
     }
   }, 500);
-  setTimeout((wormsOld)=> {
+  setTimeout((wormsOld) => {
     wormsBorder.map(worm => worm.draw(worm.shadowColor));
     foodsBorder.map(food => food.draw(food.shadowColor));
     var ordinal = ["1st", "2nd", "3rd", "4th", "5th"];
@@ -488,11 +590,11 @@ function drawStats(wormsOld, foods) {
     ctx.fillText("breed", 700, 160);
     wormsOld.forEach((worm, index) => {
       ctx.shadowColor = worm.shadowColor;
-      ctx.fillText(ordinal[index], worm.x-100, worm.y);
-      ctx.fillText(`${worm.belly}`, worm.x+410, worm.y);
-      ctx.fillText(`${worm.children}`, worm.x+530, worm.y);
+      ctx.fillText(ordinal[index], worm.x - 100, worm.y);
+      ctx.fillText(`${worm.belly}`, worm.x + 410, worm.y);
+      ctx.fillText(`${worm.children}`, worm.x + 530, worm.y);
     });
-  }, 500+speed*frames, wormsOld);
+  }, 500 + speed * frames, wormsOld);
 }
 
 function drawAncestorTable(worms) {
@@ -610,10 +712,30 @@ function pause() {
 
 function reset() {
   document.getElementById("elapsed-span").textContent = "00:00:00";
+  eatenHistory = [];
+  foodPerWormHistory = [];
   stopSimulation = true;
   clearInterval(mainInterval);
   foods = randomFoods(NUMBER_FOOD, food_sprite_images_paths);
   worms = randomWorms(NUMBER_WORMS, worm_sprite_images_paths);
   play();
   setTimeout(pause, TICK_TIME);
+}
+
+function togglePercentGraphs() {
+  document.querySelector('.graph-percent').classList.toggle('graph-apple');
+  document.querySelectorAll('.toggle-eaten-graph').forEach(node => node.classList.toggle('hide'));
+  plotPercentGraphs();
+}
+
+function plotPercentGraphs() {
+  var width = 250;
+  var height = 150;
+  if (!document.querySelector(".eaten-graph-group").classList.contains("hide")) {
+    if (document.querySelector(".graph-percent").classList.contains("graph-apple")) {
+      plotLine(".eaten-graph", foodPerWormHistory, width, height);
+    } else {
+      plotLine(".eaten-graph", eatenHistory, width, height);
+    }
+  }
 }
