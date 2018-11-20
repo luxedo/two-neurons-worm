@@ -1,6 +1,6 @@
 /*
 two-neurons-worm
-This is an attempt of creating a worm that find it's food using only
+This is a project for creating a worm that find it's food using only
 two neurons:
 https://phys.org/news/2018-07-reveals-complex-math-worms-food.html
 
@@ -28,11 +28,17 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
+  text-shadow: 0 0 1em #888;
 }
 
 th, td {
   padding-left: 15px;
   text-align: left;
+}
+
+hr {
+  width: 10em;
+  margin-left: 1em;
 }
 
 .container {
@@ -125,4 +131,17 @@ th, td {
 
 svg {
   display: block;
+}
+
+
+.global-settings-table > tbody > tr > td, th {
+  padding-left: 0;
+}
+
+.global-settings-table > tbody > tr > td:first-child, th:first-child {
+  padding-right: 5em;
+}
+
+.global-settings-control {
+  font-size: 1.2em;
 }
