@@ -57,6 +57,7 @@ hr {
   border-radius: 1em;
   border-style: solid;
   border-width: 0.5em;
+  box-shadow: 0 0 10px #555, 0 0 10px #555 inset;
 }
 
 .left-pane {

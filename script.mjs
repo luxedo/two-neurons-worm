@@ -49,9 +49,11 @@ window.updateGlobalSetting = (id, ammount, lowerBound, upperBound) => {
 window.togglePlay = () => {
   document.querySelector(".play-pause-btn").classList.toggle("active-btn");
   if (closeStartScreen) {
+    closeStartScreen = false;
+    gameScreen.pause = true;
     window.reset();
   }
-  game.pause = !game.pause;
+  gameScreen.pause = !gameScreen.pause;
 };
 
 window.toggleStop = () => {
@@ -62,12 +64,4 @@ window.toggleStop = () => {
 window.reset = () => {
   document.getElementById("elapsed-span").textContent = "00:00:00";
   game.changeScreen(gameScreen);
-  // eatenHistory = [];
-  // foodPerWormHistory = [];
-  // stopSimulation = true;
-  // clearInterval(mainInterval);
-  // foods = randomApples(NUMBER_FOOD, food_sprite_images_paths);
-  // worms = randomWorms(NUMBER_WORMS, worm_sprite_images_paths);
-  // play();
-  // setTimeout(pause, TICK_TIME);
 };

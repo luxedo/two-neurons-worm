@@ -25,6 +25,7 @@ var GLOBAL_CONF = {
   FPS: 30,
   CANVAS_WIDTH: 900,
   CANVAS_HEIGHT: 900,
+  CANVAS_PADDING: 50,
   SHADOW_BLUR: 20,
   FONT_STYLE: "monospace",
   FONT_SIZE: 26,
@@ -36,10 +37,10 @@ loadJSON('./assets/js/names.json', response => {
 export {GLOBAL_CONF};
 
 var GEN_CONF = {
-  WORMS: 20,
-  APPLES: 100,
-  MAXITER: 50,
-  SPEED: 1,
+  WORMS: 10,
+  APPLES: 50,
+  MAXITER: 100,
+  SPEED: 50,
 
   MIN_WORMS: 1,
   MAX_WORMS: 1000,
@@ -48,7 +49,9 @@ var GEN_CONF = {
   MAX_MAXITER: 100000,
   MIN_MAXITER: 10,
   MIN_SPEED: 1,
-  MAX_SPEED: 10,
+  MAX_SPEED: 100,
+
+  PERCENTAGE_RANDOM_WORMS: 0.2,
 };
 export {GEN_CONF};
 
@@ -60,7 +63,8 @@ export class Game {
     this.canvasId = canvasId;
     this.fps = fps;
     this.skipTicks = 1000 / this.fps;
-    this.nextGameTick = Date.now();
+    this.skipDraw = 1000 / this.fps;
+    this.nextGameTick = this.nextGameDraw = Date.now();
     this.width = width;
     this.height = height;
     this.canvas = document.getElementById(canvasId);
@@ -72,30 +76,31 @@ export class Game {
     this.ctx.shadowBlur = GLOBAL_CONF.SHADOW_BLUR;
     this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
     this.screen = new screen.BlankScreen(this.ctx);
-    this.paused = true;
-    this.stopped = true;
   }
 
   start() {
     this.run();
   }
 
-  changeScreen(screen) {
+  changeScreen(screen, screenArgs=[]) {
     this.screen = screen;
-    this.screen.init();
+    this.screen.init(...screenArgs);
   }
 
   run(timestamp) {
     let now = Date.now();
     if (now >= this.nextGameTick) {
       this.nextGameTick = now + this.skipTicks;
-      this.skipTicks = 1000/(this.screen.fps || this.fps);
+      this.skipTicks = 1000/(this.screen.ups || this.fps);  // screen's updates per second (ups)
       this.screen.update();
-      this.screen.draw();
-      window.requestAnimationFrame(this.run.bind(this));
-    } else {
-      setTimeout(this.run.bind(this), this.skipTicks);
     }
+    if (now >= this.nextGameDraw) {
+      this.screen.updateDom();
+      this.screen.draw();
+      this.nextGameDraw = now + this.skipDraw;
+      this.skipDraw = 1000/this.fps;
+    }
+    setTimeout(() => window.requestAnimationFrame(this.run.bind(this)), this.skipTicks/2);
   }
 }
 

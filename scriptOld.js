@@ -80,7 +80,136 @@ function start() {
   });
 }
 
+/* Classes */
+class Worm {
+  constructor(x, y, weights, stepSize, azimuth, sprite_images_paths, ctx,
+    shadowColor, firstName, lastName, generation, ancestorGen) {
+    this.x = x;
+    this.y = y;
+    this.stepSize = stepSize;
+    this.azimuth = azimuth;
+    this.index = 0;
+    this.sprite_images = sprite_images_paths.map(path => {
+      let img = new Image();
+      img.src = path;
+      return img;
+    });
+    this.ctx = ctx;
+    this.shadowColor = shadowColor;
+    this.memory = 0;
+    this.weights = weights;
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.generation = generation || 0;
+    this.ancestorGen = ancestorGen || 0;
+    this.belly = 0;
+    this.sizeX = WORM_WIDTH * (Math.random() * 0.2 + 0.9);
+    this.sizeY = WORM_HEIGHT * (Math.random() * 0.2 + 0.9);
+  }
 
+  move(stepSize, azimuth, borders) {
+    let newX = this.x + stepSize * Math.cos(azimuth);
+    let newY = this.y + stepSize * Math.sin(azimuth);
+    if (newX > borders[0] & newX < borders[2] &
+      newY > borders[1] & newY < borders[3]) {
+      this.y = newY;
+      this.x = newX;
+    }
+  }
+
+  sniff(foods) {
+    return foods
+      .map(food => food.scent(this.x, this.y))
+      .reduce((acc, cur) => acc + cur, 0);
+  }
+
+  /**
+   * This is the neural network
+   */
+  think(foods) {
+    let scent = this.sniff(foods);
+    let output = this.neuron1(scent, this.memory);
+    this.neuron2(scent);
+
+    if (output < 0.5) {
+      // If neuron1 is active, search in a new direction
+      this.azimuth += (Math.random() - 0.5) * Math.PI / 2;
+    } else {
+      // Otherwise keep on going
+      this.stepSize = output * MAX_STEP;
+    }
+  }
+
+  /**
+   * This (sigmoid) neuron can compute the gradient of the scent
+   */
+  neuron1(input, memory) {
+    return sigmoid(input * this.weights.w11 + memory * this.weights.w12 + this.weights.b1);
+  }
+
+  /**
+   * This is the memory (linear) neuron that knows the previous scent
+   */
+  neuron2(input) {
+    let memory = this.memory;
+    this.memory = input * this.weights.w21 + this.weights.b2;
+  }
+
+  eat(foods) {
+    return foods.reduce((acc, cur) => {
+      if (distance(this.x, this.y, cur.x, cur.y) < EAT_DISTANCE) {
+        acc.push(cur);
+        this.belly++;
+        this.sizeX *= 1.05;
+        this.sizeY *= 1.05;
+      }
+      return acc;
+    }, []);
+  }
+
+  draw(shadowColor) {
+    this.ctx.save();
+    this.ctx.shadowColor = shadowColor;
+    this.ctx.rotate(this.azimuth);
+    this.ctx.translate(this.x * Math.cos(this.azimuth) + this.y * Math.sin(this.azimuth), -this.x * Math.sin(this.azimuth) + this.y * Math.cos(this.azimuth));
+    this.ctx.drawImage(this.sprite_images[this.index], -this.sizeX / 2, -this.sizeY / 2, this.sizeX, this.sizeY);
+    this.ctx.restore();
+
+    this.index += Math.floor((Math.random() * (Math.log2(this.stepSize) + 2))) > 0;
+    this.index %= this.sprite_images.length;
+  }
+}
+
+
+class Food {
+  constructor(x, y, ammount, sprite_images_paths, ctx, shadowColor) {
+    this.x = x;
+    this.y = y;
+    this.ammount = ammount;
+    this.index = 0;
+    this.sprite_images = sprite_images_paths.map(path => {
+      let img = new Image();
+      img.src = path;
+      return img;
+    });
+    this.ctx = ctx;
+    this.shadowColor = shadowColor;
+    this.sizeX = FOOD_WIDTH * FOOD_SCALE * Math.log(this.ammount);
+    this.sizeY = FOOD_HEIGHT * FOOD_SCALE * Math.log(this.ammount);
+  }
+
+  scent(x, y) {
+    let r2 = Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2);
+    return this.ammount / r2;
+  }
+
+  draw(shadowColor) {
+    this.ctx.shadowColor = shadowColor;
+    this.ctx.drawImage(this.sprite_images[this.index], this.x - this.sizeX / 2, this.y - this.sizeY / 2, this.sizeX, this.sizeY);
+    this.index += Math.floor((Math.random() * 5)) > 0;
+    this.index %= this.sprite_images.length;
+  }
+}
 
 
 /* Functions */
@@ -96,7 +225,7 @@ function distance(x1, y1, x2, y2) {
 }
 
 /* Standard Normal variate using Box-Muller transform. */
-function random_bm(mean, variance) {
+function randomBm(mean, variance) {
   let u = 0,
     v = 0;
   while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
@@ -105,7 +234,7 @@ function random_bm(mean, variance) {
 }
 
 /* Initialize random foods */
-function randomFoods(number, food_sprite_images_paths) {
+function randomApples(number, food_sprite_images_paths) {
   let foods = [];
   for (let i = 0; i < number; i++) {
     let ammount = (Math.random() * (MAX_AMMOUNT - MIN_AMMOUNT)) + MIN_AMMOUNT;
@@ -167,7 +296,7 @@ function reproduceWorms(worms, worm_sprite_images_paths) {
 }
 
 function computeChildren(worms) {
-  let number = worms.length;
+  let larvae = new Array(number).fill();
 
   worms = worms.filter(worm => worm.belly !== 0);
   worms.sort((a, b) => b.belly - a.belly);
@@ -176,12 +305,14 @@ function computeChildren(worms) {
     acc += worm.belly;
     return acc;
   }, 0);
-  let larvae = worms.reduce((acc, worm, index) => {
+  let parents = worms.reduce((acc, worm) => {
     let numberOfChildren = Math.ceil(worm.belly / totalFood * number);
-    let children = new Array(numberOfChildren).fill(index);
-    acc.push(...children);
+    let parent = new Array(numberOfChildren).fill(worm);
+    acc.push(...parent);
     return acc;
   }, []).slice(0, Math.floor(number * (1 - PERCENTAGE_RANDOM_WORMS)));
+
+  larvae = larvae.map(worm => breedWorm(worm));
   return larvae;
 }
 
@@ -194,20 +325,20 @@ function breedWorm(worm, worm_sprite_images_paths) {
   let y = Math.random() * (CANVAS_SIZE - 2 * SOFT_BORDER) + SOFT_BORDER;
   let azimuth = Math.random() * 2 * Math.PI;
 
-  let stepSize = worm.stepSize + random_bm(0, 1);
+  let stepSize = worm.stepSize + randomBm(0, 1);
   stepSize = stepSize > MAX_STEP ? MAX_STEP : stepSize;
   stepSize = stepSize < 0 ? -stepSize : stepSize;
 
   let weights = {
-    b1: worm.weights.b1 + random_bm(0, 0.5),
-    w11: worm.weights.w11 + random_bm(0, 0.5),
-    w12: worm.weights.w12 + random_bm(0, 0.5),
-    b2: worm.weights.b2 + random_bm(0, 0.5),
-    w21: worm.weights.w21 + random_bm(0, 0.5)
+    b1: worm.weights.b1 + randomBm(0, 0.5),
+    w11: worm.weights.w11 + randomBm(0, 0.5),
+    w12: worm.weights.w12 + randomBm(0, 0.5),
+    b2: worm.weights.b2 + randomBm(0, 0.5),
+    w21: worm.weights.w21 + randomBm(0, 0.5)
   };
   let color = worm.shadowColor;
-  let red = (parseInt(color.slice(1, 3), 16) + Math.floor(random_bm(0, 10)) % 256).toString(16);
-  let blue = (parseInt(color.slice(5), 16) + Math.floor(random_bm(0, 10)) % 256).toString(16);
+  let red = (parseInt(color.slice(1, 3), 16) + Math.floor(randomBm(0, 10)) % 256).toString(16);
+  let blue = (parseInt(color.slice(5), 16) + Math.floor(randomBm(0, 10)) % 256).toString(16);
   red = red.length == 2 ? red : "0" + red;
   blue = blue.length == 2 ? blue : "0" + blue;
   color = `#${red}FF${blue}`;
@@ -248,11 +379,11 @@ function runGeneration(foods, worms, maxiter) {
       ticks++;
       let totalEaten = totalFood - foods.length;
       document.getElementById("elapsed-span").textContent = new Date(ticks * TICK_TIME).toUTCString().match(/\d{2}:\d{2}:\d{2}/);
+      document.getElementById("total-eaten-span").textContent = `${totalEaten}\t(${(100*totalEaten/totalFood).toFixed(2)}% - ${(totalEaten/totalWorms).toFixed(2)}a/w)`;
       document.getElementById("total-worms-span").textContent = totalWorms;
-      document.getElementById("total-food-span").textContent = totalFood;
+      document.getElementById("total-apple-span").textContent = totalFood;
       // document.getElementById("maxiter-span").textContent = MAXITER;
       document.getElementById("speed-span").textContent = (1/TICK_TIME)*100;
-      document.getElementById("total-eaten-span").textContent = `${totalEaten}\t(${(100*totalEaten/totalFood).toFixed(2)}% - ${(totalEaten/totalWorms).toFixed(2)}a/w)`;
     }, TICK_TIME);
   });
   return promise;
@@ -300,7 +431,7 @@ function runGenerationAndLoop(foods, worms, worm_sprite_images_paths, food_sprit
     let wormsOld = worms.slice(0);
     let foodsOld = foods.slice(0);
     worms = reproduceWorms(worms, worm_sprite_images_paths);
-    foods = randomFoods(foods.length, food_sprite_images_paths);
+    foods = randomApples(foods.length, food_sprite_images_paths);
     drawAncestorTable(worms);
     eatenHistory.push((1 - newFoods.length / foods.length) * 100);
     foodPerWormHistory.push((foods.length - newFoods.length) / worms.length);
@@ -583,7 +714,7 @@ function reset() {
   foodPerWormHistory = [];
   stopSimulation = true;
   clearInterval(mainInterval);
-  foods = randomFoods(NUMBER_FOOD, food_sprite_images_paths);
+  foods = randomApples(NUMBER_FOOD, food_sprite_images_paths);
   worms = randomWorms(NUMBER_WORMS, worm_sprite_images_paths);
   play();
   setTimeout(pause, TICK_TIME);
