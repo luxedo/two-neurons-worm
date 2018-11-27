@@ -104,3 +104,8 @@ export function deromanize(str) {
     num += key[m[0]];
   return num;
 }
+
+
+export function degree2radians(degree) {
+  return degree * Math.PI/180;
+}

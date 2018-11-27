@@ -53,11 +53,7 @@ export function setupDom() {
   document.getElementById("elapsed-span").textContent = "00:00:00";
   document.getElementById("generation-span").textContent = "0";
   document.getElementById("total-eaten-span").textContent = `0\t(0% - 0a/w)`;
-  // Generation Settings
-  document.getElementById("total-worms-span").textContent = GEN_CONF.WORMS;
-  document.getElementById("total-apple-span").textContent = GEN_CONF.APPLES;
-  document.getElementById("maxiter-span").textContent = GEN_CONF.MAXITER;
-  document.getElementById("speed-span").textContent = GEN_CONF.SPEED;
+  document.getElementById("remaining-iterations-span").textContent = GEN_CONF.MAXITER;
 }
 
 export class BlankScreen {
@@ -73,7 +69,7 @@ export class BlankScreen {
 
 export class StartScreen extends BlankScreen {
   init() {
-    this.color = "#FFF";
+    this.color = "#EEE";
     this.wormColor = "#0F0";
     this.wormsAmmount = 1;
     this.applesAmmount = 50;
@@ -84,19 +80,34 @@ export class StartScreen extends BlankScreen {
     this.blurOscilation.push(...this.blurOscilation.slice(0).reverse());
     this.ups = 20;
 
+    this.borderLimit = [GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING, GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING];
     this.borderFunc = extra.circleBorder(this.game.width / 2, this.game.height / 2 + 100, this.game.width / 3);
-    this.worms = wormModule.randomWorms(this.game, this.wormsAmmount,
-      4 * WORM_CONF.WORM_WIDTH, 4 * WORM_CONF.WORM_HEIGHT, WORM_CONF.worm_sprite_images_paths,
-      GLOBAL_CONF.NAMES, 50, this.game.width - 50, 150, this.game.height - 50, this.borderFunc);
+
+    let size = [4*WORM_CONF.WORM_WIDTH, 4*WORM_CONF.WORM_HEIGHT];
+    let body = {
+      maxStepM: 5,
+      maxStepS: 0,
+      maxTurnM: extra.degree2radians(90),
+      maxTurnS: 0,
+      turnBiasM: 0,
+      turnBiasS: 0
+    };
+    let brain = {
+      algorithm: "Random Walk",
+      randomWalkM: 0.1,
+      randomWalkS: 0.0
+    };
+    this.worms = wormModule.randomWorms(this.game, this.wormsAmmount, size,
+      WORM_CONF.worm_sprite_images_paths, body, brain, GLOBAL_CONF.NAMES, this.borderLimit,
+      this.borderFunc);
     this.apples = wormModule.randomApples(this.game, this.applesAmmount,
       WORM_CONF.APPLE_WIDTH / 2, WORM_CONF.APPLE_HEIGHT / 2, WORM_CONF.apple_sprite_images_paths,
-      2, 8, 50, this.game.width - 50, 150, this.game.height - 50, this.borderFunc);
+      2, 8, this.borderLimit, this.borderFunc);
   }
   update() {
     this.worms.map(worm => {
-      let changeDirection = Math.random() > 0.9 ? extra.randomBm(0, Math.PI / 16) : 0;
-      worm.move(2, worm.azimuth + changeDirection, this.borderFunc);
-    });
+      worm.update(this.apples, this.borderFunc);
+    }, this);
     this.iter++;
     this.iter %= this.blurOscilation.length;
   }
@@ -123,42 +134,61 @@ export class StartScreen extends BlankScreen {
     // this.ctx.fillText("CHOSE WORMS GENETIC VARIANCE →", 100, 360);
     this.worms.map(worm => {
       worm.draw();
-      worm.drawText(`Giant Random Walk\n${worm.firstName} ${worm.lastName}`);
+      worm.drawText(`Giant Random Walk\n${worm.fullName}`);
     });
     this.apples.map(apple => apple.draw());
   }
 }
 
 export class GameScreen extends BlankScreen {
-  init() {
+  init(worms, generation) {
+    this.generation = generation || 0;
 
     this.iter = 0;
     this.eaten = 0;
     this.startingTime = Date.now();
-    this.stopGeneration = true;
+    this.stopGeneration = false;
 
-    this.totalWorms = parseInt(document.getElementById("total-worms-span").textContent) || GEN_CONF.WORMS;
-    this.totalApples = parseInt(document.getElementById("total-apple-span").textContent) || GEN_CONF.APPLES;
-    this.maxiter = parseInt(document.getElementById("maxiter-span").textContent) || GEN_CONF.MAXITER;
-    this.speed = parseInt(document.getElementById("speed-span").textContent) || GEN_CONF.SPEED;
+    // Generation Settings
+    this.totalWorms = parseInt(document.getElementById("total-worms").value);
+    this.totalApples = parseInt(document.getElementById("total-apples").value);
+    this.maxiter = parseInt(document.getElementById("maximum-iterations").value);
+    this.speed = parseInt(document.getElementById("speed").value);
 
+    // Worms Bodies
+    let maxStepM = parseInt(document.getElementById("step-size-mean").value);
+    let maxStepS = parseInt(document.getElementById("step-size-std").value);
+    let maxTurnM = parseInt(document.getElementById("turning-range-mean").value);
+    let maxTurnS = parseInt(document.getElementById("turning-range-std").value);
+    let turnBiasM = parseInt(document.getElementById("turning-bias-mean").value);
+    let turnBiasS = parseInt(document.getElementById("turning-bias-std").value);
+    let body = {maxStepM, maxStepS, maxTurnM, maxTurnS, turnBiasM, turnBiasS};
+
+    // Worms Brains
+    let randomWalkM = parseInt(document.getElementById("random-walk-slider-mean").value);
+    let randomWalkS = parseInt(document.getElementById("random-walk-slider-std").value);
+    let brain = {
+      algorithm: this.game.algorithm,
+      randomWalkM,
+      randomWalkS,
+    };
+
+    let size = [WORM_CONF.WORM_WIDTH, WORM_CONF.WORM_HEIGHT];
+    this.borderLimit = [GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING, GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING];
     this.borderFunc = extra.rectangleBorder(0, this.game.width, 0, this.game.height);
-    this.worms = wormModule.randomWorms(this.game, this.totalWorms,
-      WORM_CONF.WORM_WIDTH, WORM_CONF.WORM_HEIGHT, WORM_CONF.worm_sprite_images_paths,
-      GLOBAL_CONF.NAMES, GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING,
-      GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING, this.borderFunc);
+    this.worms = worms || wormModule.randomWorms(this.game, this.totalWorms, size,
+      WORM_CONF.worm_sprite_images_paths, body, brain, GLOBAL_CONF.NAMES, this.borderLimit, this.borderFunc);
     this.apples = wormModule.randomApples(this.game, this.totalApples,
-      WORM_CONF.APPLE_WIDTH, WORM_CONF.APPLE_HEIGHT, WORM_CONF.apple_sprite_images_paths, 2, 8,
-      GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING,
-      GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING, this.borderFunc);
+      WORM_CONF.APPLE_WIDTH, WORM_CONF.APPLE_HEIGHT, WORM_CONF.apple_sprite_images_paths,
+      2, 8, this.borderLimit, this.borderFunc);
   }
   update() {
     if (this.iter >= this.maxiter) {
-      this.game.changeScreen(new StatsScreen(this.game), [this.worms, this.apples, this.stopGeneration]);
+      this.game.changeScreen(new StatsScreen(this.game), [this.worms, this.apples, this.stopGeneration, this.generation]);
     }
     if (!this.pause) {
-      this.maxiter = parseInt(document.getElementById("maxiter-span").textContent) || GEN_CONF.MAXITER;
-      this.speed = parseInt(document.getElementById("speed-span").textContent) || GEN_CONF.SPEED;
+      this.maxiter = parseInt(document.getElementById("maximum-iterations").value);
+      this.speed = parseInt(document.getElementById("speed").value);
       this.ups = this.speed;
       this.worms.map(worm => {
         worm.move(5, worm.azimuth + extra.randomBm(0, Math.PI / 8),
@@ -189,54 +219,63 @@ export class GameScreen extends BlankScreen {
       if (worm.belly > maxEaten) {
         glutton = [worm];
         maxEaten = worm.belly;
-      }
-      if (worm.belly == maxEaten) glutton.push(worm);
+      } else if (worm.belly == maxEaten) glutton.push(worm);
       worm.draw();
     });
-    glutton.map(worm => worm.drawText(`${maxEaten} Apples\n${worm.firstName} ${worm.lastName}`));
+    glutton.map(worm => worm.drawText(`${maxEaten} Apples\n${worm.fullName}`));
     this.apples.filter(apple => !apple.eaten).map(apple => apple.draw());
     if (this.pause) {
       this.ctx.font = `100px ${GLOBAL_CONF.FONT_STYLE}`;
       this.ctx.shadowColor = "#0F0";
       this.ctx.fillText("Pause", this.game.width / 2 - 150, this.game.height / 2);
     }
-    document.getElementById("elapsed-span").textContent = new Date(Date.now() - this.startingTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/);
-    document.getElementById("total-eaten-span").textContent = `${this.eaten}\t(${(100*this.eaten/this.apples.length).toFixed(2)}% - ${(this.eaten/this.worms.length).toFixed(2)}a/w)`;
   }
   updateDom() {
+    document.getElementById("generation-span").textContent = this.generation;
+    document.getElementById("elapsed-span").textContent = new Date(Date.now() - this.startingTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/);
+    document.getElementById("total-eaten-span").textContent = `${this.eaten.toString().padEnd(4)}(${(100*this.eaten/this.apples.length).toFixed(2)}% - ${(this.eaten/this.worms.length).toFixed(2)}a/w)`;
+    document.getElementById("remaining-iterations-span").textContent = `${this.maxiter-this.iter} (${((this.maxiter-this.iter)/this.speed).toFixed(2)}s)`;
     this.worms.sort((a, b) => b.belly - a.belly).slice(0, 5).map((worm, index) => {
-      let firstName = worm.firstName;
-      let lastName = worm.lastName;
       document.getElementById(`worm${index}-name`).parentElement.style.color = worm.shadowColor;
-      document.getElementById(`worm${index}-name`).textContent = `${firstName} ${lastName} ${extra.romanize(worm.generation) || ""}`;
+      document.getElementById(`worm${index}-name`).textContent = worm.fullName;
       document.getElementById(`worm${index}-belly`).textContent = worm.belly;
     });
   }
 }
 
 export class StatsScreen extends BlankScreen {
-  init(worms, apples, stopGeneration) {
+  // COMBAK: Think about this properly
+  init(worms, apples, stopGeneration, generation) {
     this.worms = worms;
     this.apples = apples;
+    this.eaten = this.apples.filter(apple => apple.eaten).length;
     this.stopGeneration = stopGeneration || false;
+    this.generation = generation || 0;
 
     this.freezeState = 10; // 10 updates frozen
-    this.slidingAnimation = 20; // 20 updates for the animation
+    this.slidingAnimation = 15; // 15 updates for the animation
 
+    let border = 100;
+    let borderArray = [border, this.game.width-border, border/2, this.game.height-border];
+    this.borderApples = this.apples.slice(0).filter(apple => !apple.eaten&&!extra.insideRectangle(...borderArray, apple.x, apple.y));
+    this.borderWorms = this.worms.slice(0).filter(worm => !extra.insideRectangle(...borderArray, worm.x, worm.y));
     this.borderFunc = extra.rectangleBorder(0, this.game.width, 0, this.game.height);
-    this.newWorms = wormModule.breedLarvae(this.game, this.worms, WORM_CONF.WORM_WIDTH,
-      WORM_CONF.WORM_HEIGHT, WORM_CONF.worm_sprite_images_paths, GLOBAL_CONF.NAMES,
-      GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING,
-      GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING, this.borderFunc);
+    this.borderLimit =[GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING, GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING];
+    let size = [WORM_CONF.WORM_WIDTH, WORM_CONF.WORM_HEIGHT];
+    this.newWorms = wormModule.breedLarvae(this.game, this.worms, size, WORM_CONF.worm_sprite_images_paths,
+      GLOBAL_CONF.NAMES, this.borderLimit, this.borderFunc, this.generation);
     this.topWorms = this.worms.sort((a, b) => b.belly - a.belly).slice(0, 5).map((worm, index) => {
-      let fx = this.game.width / 2 - 250;
-      let fy = (100 * index + 200);
+      let fx = this.game.width / 2 - 280;
+      let fy = (80 * index + 200);
       let slope = (fy - worm.y) / (fx - worm.x);
       worm.dx = (fx - worm.x) / this.slidingAnimation;
       worm.dy = (slope * worm.dx);
       return worm;
+
     });
-    this.color = "#FFF";
+    this.topWorms.map(worm => worm.drawText(worm.fullName));
+
+    this.color = "#EEE";
     this.wormColor = "#0F0";
     this.fontTitle = `50px ${GLOBAL_CONF.FONT_STYLE}`;
     this.fontSub = `20px ${GLOBAL_CONF.FONT_STYLE}`;
@@ -246,6 +285,13 @@ export class StatsScreen extends BlankScreen {
     this.blurOscilation.push(...this.blurOscilation.slice(0).reverse());
     this.ups = 30;
     this.fillAncestorTable(this.newWorms);
+
+    this.game.eatenHistory = this.game.eatenHistory || [];
+    this.game.foodPerWormHistory = this.game.foodPerWormHistory || [];
+
+    this.game.eatenHistory.push(this.apples.filter(apple => apple.eaten).length/this.apples.length * 100);
+    this.game.foodPerWormHistory.push(this.apples.filter(apple => apple.eaten).length/this.worms.length * 100);
+    plotPercentGraphs(this.game);
   }
   update() {
     this.iter++;
@@ -255,40 +301,59 @@ export class StatsScreen extends BlankScreen {
           worm.x += worm.dx;
           worm.y += worm.dy;
         });
+      } else if(this.iter > this.slidingAnimation+this.freezeState) {
+        this.topWorms.map((worm, index) => {
+          worm.x = this.game.width / 2 - 280;
+          worm.y = (80 * index + 200);
+        });
       }
     } else {
+      if (this.iter > 15) this.game.changeScreen(new GameScreen(this.game), [this.newWorms, this.generation+1]);
     }
   }
   draw() {
+    this.ctx.clearRect(0, 0, this.game.width, this.game.height);
     this.glowIter++;
     this.glowIter %= this.blurOscilation.length;
-    if (this.stopGeneration && this.iter>this.freezeState) {
-      this.ctx.clearRect(0, 0, this.game.width, this.game.height);
-      this.topWorms.map(worm => {
-        worm.draw();
-        worm.drawText(`${worm.firstName} ${worm.lastName}  ${extra.romanize(worm.generation) || ""}`);
-      });
+    this.ctx.shadowBlur = this.blurOscilation[this.glowIter];
+    if (this.stopGeneration) {
+      if (this.iter<this.freezeState+this.slidingAnimation) {
+        this.topWorms.map(worm => {
+          worm.draw();
+          worm.drawText(worm.fullName);
+        });
+        this.apples.filter(apple => !apple.eaten).map(apple => apple.draw());
+      } else {
+        this.ctx.font = `50px ${GLOBAL_CONF.FONT_STYLE}`;
+        this.ctx.shadowColor = "#F00";
+        this.ctx.fillText("Top Worms", 330, 100);
+        this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
+        let largestName = this.topWorms.reduce((acc, worm) => worm.fullName.length>acc?worm.fullName.length:acc, 0);
+        this.ctx.fillText(`${(100*this.eaten/this.apples.length).toFixed(2)}% apples eaten`, 190, 700);
+        this.ctx.fillText(`${(this.eaten/this.worms.length).toFixed(2)} apples/worm`, 190, 740);
+        this.topWorms.map(worm => {
+          worm.draw();
+          worm.drawText(`${worm.fullName.padEnd(largestName)} - ${worm.belly} apples`);
+        });
+        this.borderApples.map(apple => apple.draw());
+        this.borderWorms.map(worm => worm.draw());
+      }
+    } else {
       this.ctx.font = `50px ${GLOBAL_CONF.FONT_STYLE}`;
       this.ctx.shadowColor = "#F00";
-      this.ctx.fillText("Top Worms", 330, 100);
+      this.ctx.fillText("End Gen", 340, this.game.height/2-110)
+      if (this.iter<5) this.ctx.fillText("Breeding.", 330, this.game.height/2-50);
+      else if (this.iter<10) this.ctx.fillText("Breeding..", 330, this.game.height/2-50);
+      else this.ctx.fillText("Breeding...", 330, this.game.height/2-50);
       this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
-    } else {
-      // this.ctx.strokeStyle = this.color;
-      // this.ctx.fillStyle = this.color;
-      // this.ctx.shadowColor = this.color;
-      // this.ctx.shadowBlur = this.blurOscilation[this.iter];
-      // this.ctx.font = this.fontTitle;
-      // this.ctx.fillText("Two Neurons Worm", 100, 100);
-      // this.ctx.font = this.fontSub;
-      // this.ctx.fillText("RULES:", 100, 160);
-      // this.ctx.fillText("← Mess with generation settings", 100, 200);
-      // this.ctx.fillText("→ Mess with worms neurons", 100, 220);
-      // this.ctx.fillText("• BE THE VERY BEST WORM TRAINER •", 100, 240);
+      this.worms.map(worm => worm.draw());
+      this.apples.filter(apple => !apple.eaten).map(apple => apple.draw());
+      this.topWorms.map(worm => worm.drawText(worm.fullName));
     }
   }
   fillAncestorTable(worms) {
     new Array(5).fill(0).map((_, index) => {
-      document.getElementById(`ancestor${index}-name`).parentElement.style.color = "#FFF";
+      document.getElementById(`ancestor${index}-name`).parentElement.style.color = "#EEE";
       document.getElementById(`ancestor${index}-name`).textContent = "";
       document.getElementById(`ancestor${index}-gen`).textContent = "";
       document.getElementById(`ancestor${index}-breed`).textContent = "";
@@ -311,5 +376,112 @@ export class StatsScreen extends BlankScreen {
         document.getElementById(`ancestor${index}-gen`).textContent = worm[1].ancestorGen || "Pioneer";
         document.getElementById(`ancestor${index}-breed`).textContent = worm[1].breed;
       });
+  }
+}
+
+export function plotLine(selector, data, width, height) {
+  if (data == undefined || data.length<2) return "no data";
+  if (data.length > width/2) {
+    data = data.slice(data.length-width/2, data.length);
+  }
+  let maxData = Math.max(...data);
+  let minData = Math.min(...data);
+
+  data = data.map((d, index) => [index, d]);
+
+  let x = d3.scaleLinear()
+    .domain([0, data[data.length - 1][0]]).nice()
+    .range([0, width]);
+  let y = d3.scaleLinear()
+    .domain([minData, maxData])
+    .range([height, 0]);
+  let area = d3.area()
+    .x(d => x(d[0]))
+    .y0(y(0))
+    .y1(d => y(d[1]));
+  let line = d3.line()
+    .x(d => x(d[0]))
+    .y(d => y(d[1]));
+
+  let xAxis = g => g
+    .attr("transform", `translate(0, ${height})`)
+    .call(d3.axisBottom(x)
+      .ticks(4)
+      .tickSizeInner(-5)
+      .tickSizeOuter(0));
+
+  let yAxis = g => g
+    .call(
+      d3.axisLeft(y)
+      .ticks(4)
+      .tickSizeInner(-5)
+      .tickSizeOuter(0));
+  d3.selectAll(`${selector} > svg`).remove();
+  let svg = d3.select(selector)
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+  svg.append("path")
+    .datum(data)
+    .attr("fill", "#F00")
+    .attr("opacity", "0.2")
+    .attr("d", area);
+  svg.append("path")
+    .datum(data)
+    .attr("stroke", "#F00")
+    .attr("fill", "none")
+    .attr("stroke-width", "2")
+    .attr("opacity", "0.5")
+    .attr("d", line);
+
+
+  let xAxisObj = svg.append("g")
+    .call(xAxis);
+  xAxisObj.select("path").remove();
+  xAxisObj.selectAll("text").attr("transform", `translate(0, -20)`);
+  xAxisObj.select("g > text").attr("transform", `translate(10, -20)`);
+
+  let yAxisObj = svg.append("g")
+    .call(yAxis);
+  yAxisObj.select("path").remove();
+  yAxisObj.selectAll("text").attr("transform", `translate(20, 0)`);
+  yAxisObj.select("g > text").remove();
+
+  /* Glow effect
+   * https://www.visualcinnamon.com/2016/06/glow-filter-d3-visualization.html
+   */
+  //Container for the gradients
+  let defs = svg.append("defs");
+
+  //Filter for the outside glow
+  let filter = defs.append("filter")
+    .attr("id", "glow");
+  filter.append("feGaussianBlur")
+    .attr("stdDeviation", "5")
+    .attr("result", "coloredBlur");
+  let feMerge = filter.append("feMerge");
+  feMerge.append("feMergeNode")
+    .attr("in", "coloredBlur");
+  feMerge.append("feMergeNode")
+    .attr("in", "SourceGraphic");
+  d3.selectAll("path")
+    .style("filter", "url(#glow)");
+}
+
+export function plotPercentGraphs(game) {
+  let width = 250;
+  let height = 150;
+  let retval;
+  if (!document.querySelector(".eaten-graph-group").classList.contains("hide")) {
+    if (game.percentGraph) {
+      retval = plotLine(".eaten-graph", game.foodPerWormHistory, width, height);
+    } else {
+      retval = plotLine(".eaten-graph", game.eatenHistory, width, height);
+    }
+    if (retval != "no data") {
+      document.getElementById("waiting-data").classList.add("hide");
+    } else {
+      document.getElementById("waiting-data").classList.remove("hide");
+    }
   }
 }

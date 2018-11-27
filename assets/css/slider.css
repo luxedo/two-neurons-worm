@@ -1,0 +1,69 @@
+.slidecontainer {
+    width: 100%; /* Width of the outside container */
+}
+
+/* The slider itself */
+.slider {
+    -webkit-appearance: none;  /* Override default CSS styles */
+    appearance: none;
+    width: 12em; 
+    height: 0.5em; /* Specified height */
+    background: #d3d3d3; /* Grey background */
+    outline: none; /* Remove outline */
+    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    -webkit-transition: .2s; /* 0.2 seconds transition on hover */
+    transition: opacity .2s;
+}
+
+/* Mouse-over effects */
+.slider:hover {
+    opacity: 1; /* Fully shown on mouse-over */
+}
+
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 1em; /* Set a specific slider handle width */
+    height: 1em; /* Slider handle height */
+    background: #0A0; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+
+.slider::-moz-range-thumb {
+  background: #0A0; /* Green background */
+  cursor: pointer; /* Cursor on hover */
+    height: 1em; /* Slider handle height */
+    width: 1em; /* Set a specific slider handle width */
+}
+
+.red-slider::-webkit-slider-thumb {
+  background: #F00;
+}
+.red-slider::-moz-range-thumb {
+  background: #F00;
+}
+
+.blue-slider::-webkit-slider-thumb {
+  background: #00F;
+}
+.blue-slider::-moz-range-thumb {
+  background: #00F;
+}
+
+
+input[type=number] {
+  background-color: #333;
+  border-style: none;
+  color: #EEE;
+  font-family: monospace;
+  padding: 0.5em;
+  width: 3em;
+}
+
+input[type=number]::-webkit-outer-spin-button,
+input[type=number]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  margin: 0;
+}

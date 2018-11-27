@@ -36,6 +36,7 @@ window.start = () => {
   gameScreen = new screens.GameScreen(game);
   game.start();
   game.changeScreen(startScreen);
+  document.querySelector(".select-items").firstChild.click();
 };
 
 
@@ -47,7 +48,7 @@ window.updateGlobalSetting = (id, ammount, lowerBound, upperBound) => {
 
 
 window.togglePlay = () => {
-  document.querySelector(".play-pause-btn").classList.toggle("active-btn");
+  document.querySelectorAll(".play-pause").forEach(node => node.classList.toggle("hide"));
   if (closeStartScreen) {
     closeStartScreen = false;
     gameScreen.pause = true;
@@ -58,10 +59,39 @@ window.togglePlay = () => {
 
 window.toggleStop = () => {
   gameScreen.stopGeneration = !gameScreen.stopGeneration;
-  document.querySelector(".stop-btn").classList.toggle("active-btn");
+  document.querySelector(".fa-stop.run-btn").classList.toggle("active-btn");
 };
 
 window.reset = () => {
-  document.getElementById("elapsed-span").textContent = "00:00:00";
   game.changeScreen(gameScreen);
+};
+
+window.plotPercentGraphs = () => screens.plotPercentGraphs(game);
+
+window.togglePercentGraphs = () => {
+  game.percentGraph = !game.percentGraph;
+  document.querySelectorAll('.toggle-eaten-graph').forEach(node => node.classList.toggle('hide'));
+  plotPercentGraphs(game);
+};
+
+window.selectedNode = (node) => {
+  let select = node.parentNode.parentNode.id;
+  switch (select) {
+    case "algorithm-select":
+      let algorithm = node.textContent;
+      game.algorithm = algorithm;
+      document.querySelectorAll('.random-walk-brain,.neural-network-brain').forEach(node => node.classList.add('hide'));
+      switch (algorithm) {
+        case "Random Walk":
+          document.querySelectorAll('.random-walk-brain').forEach(node => node.classList.remove('hide'));
+          break;
+        case "Neural Network":
+          document.querySelectorAll('.neural-network-brain').forEach(node => node.classList.remove('hide'));
+          break;
+        default:
+      }
+      break;
+    default:
+
+  }
 };

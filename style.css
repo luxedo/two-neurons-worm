@@ -17,13 +17,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 a:link, a:visited, a:hover, a:active {
-  color: #FFF;
+  color: #EEE;
   text-decoration: underline;
 }
 
 html, body {
   background-color: #222;
-  color: #FFF;
+  color: #EEE;
   font-family: monospace;
   height: 100%;
   margin: 0;
@@ -32,13 +32,13 @@ html, body {
 }
 
 th, td {
-  padding-left: 15px;
-  text-align: left;
+  /* padding-left: 15px;
+  text-align: left; */
 }
 
 hr {
-  width: 10em;
-  margin-left: 1em;
+  width: 15em;
+  border-color: #555;
 }
 
 .container {
@@ -61,7 +61,13 @@ hr {
 }
 
 .left-pane {
-  margin-left: 5em;
+  margin-left: 8em;
+  margin-right: 2em;
+}
+
+.right-pane {
+  margin-left: 2em;
+  margin-right: 8em;
 }
 
 .cursor-pointer {
@@ -77,29 +83,12 @@ hr {
 }
 
 .run-btn {
-  display: inline;
-  font-size: 5em;
-}
-
-.run-btn>div {
-  display: table-cell;
-}
-
-.stop-btn {
   font-size: 3em;
-  vertical-align: text-bottom;
-}
-
-.reset-btn {
-  font-size: 6em;
+  padding: 0.1em 0.5em 0.1em 0;
 }
 
 .active-btn {
   color: #888;
-}
-
-.play-pause-btn {
-  vertical-align: sub;
 }
 
 .run-btn:hover {
@@ -134,15 +123,26 @@ svg {
   display: block;
 }
 
-
-.global-settings-table > tbody > tr > td, th {
+.global-settings-table>tbody>tr>td, th {
   padding-left: 0;
 }
 
-.global-settings-table > tbody > tr > td:first-child, th:first-child {
+.global-settings-table>tbody>tr>td:first-child, th:first-child {
   padding-right: 5em;
 }
 
 .global-settings-control {
   font-size: 1.2em;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.slidecontainer > p {
+  margin-bottom: 0.1em;
 }

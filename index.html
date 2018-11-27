@@ -24,7 +24,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   <meta name="description" content="This is a project for creating a worm that find it's food using only two neurons.">
   <link id="favicon" rel="icon" href="./assets/img/favicon.ico" type="image/x-icon">
   <meta charset="utf-8">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="stylesheet" href="./assets/css/dropdown.css">
+  <link rel="stylesheet" href="./assets/css/slider.css">
+  <link rel="stylesheet" href="./assets/css/tooltip.css">
+
   <script src="https://d3js.org/d3.v5.min.js"></script>
   <!-- <script src="https://unpkg.com/d3fc/build/d3fc.min.js"></script> -->
   <script src="./assets/js/screens.mjs" type="module"></script>
@@ -62,61 +67,46 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <h3>Elapsed: <span id="elapsed-span"></span></h3>
         <h3>Generation: <span id="generation-span"></span></h3>
         <h3>Eaten: <span id="total-eaten-span"></span></h3>
-        <hr>
-        <h3>Generation Settings</h3>
-          <table class="global-settings-table">
-            <tr>
-              <th>Apples</th>
-              <th>Worms</th>
-            </tr>
-            <tr>
-              <td>
-                <span class="apples-minus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('total-apple-span', -1, GEN_CONF.MIN_APPLES, GEN_CONF.MAX_APPLES);">-</span>
-                <span id="total-apple-span" class="noselect"></span>
-                <span class="apples-plus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('total-apple-span', 1, GEN_CONF.MIN_APPLES, GEN_CONF.MAX_APPLES);">+</span>
-              </td>
-              <td>
-                <span class="worms-minus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('total-worms-span', -1, GEN_CONF.MIN_WORMS, GEN_CONF.MAX_WORMS);">-</span>
-                <span id="total-worms-span" class="noselect"></span>
-                <span class="worms-plus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('total-worms-span', 1, GEN_CONF.MIN_WORMS, GEN_CONF.MAX_WORMS);">+</span>
-              </td>
-            </tr>
-            <tr>
-              <th>Max Iter</th>
-              <th>Speed</th>
-            </tr>
-            <tr>
-              <td>
-                <span class="maxiter-minus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('maxiter-span', -1, GEN_CONF.MIN_MAXITER, GEN_CONF.MAX_MAXITER);">-</span>
-                <span id="maxiter-span" class="noselect"></span>
-                <span class="maxiter-plus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('maxiter-span', 1, GEN_CONF.MIN_MAXITER, GEN_CONF.MAX_MAXITER);">+</span>
-              </td>
-              <td>
-                <span class="speed-minus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('speed-span', -1, GEN_CONF.MIN_SPEED, GEN_CONF.MAX_SPEED);">-</span>
-                <span id="speed-span" class="noselect"></span>
-                <span class="speed-plus cursor-pointer noselect underline global-settings-control"
-                      onclick="updateGlobalSetting('speed-span', 1, GEN_CONF.MIN_SPEED, GEN_CONF.MAX_SPEED);">+</span>
-              </td>
-            </tr>
-          </table>
-      </div>
-      <div class="run-div">
-        <div>
-          <hr>
-          <div class="run-btn play-pause-btn noselect cursor-pointer" onclick="togglePlay()">⏯</div>
-          <div class="run-btn stop-btn noselect cursor-pointer" onclick="toggleStop()">⬛</div>
-          <div class="run-btn reset-btn noselect cursor-pointer" onclick="reset()">↺</div>
+        <h3>Iterations Left: <span id="remaining-iterations-span"></span></h3>
+        <hr align="left">
+        <h3 style="display:inline;">Generation Settings</h3>
+        <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.generation-settings-box').forEach(node => node.classList.toggle('hide'));">show</span>
+        <div class="generation-settings-box hide">
+          <div class="slidecontainer">
+            <p>Apples:</p>
+            <input type="range" min="0" max="1000" value="20" class="slider blue-slider" id="total-apples">
+          </div>
+          <div class="slidecontainer">
+            <p>Worms:</p>
+            <input type="range" min="0" max="1000" value="10" class="slider blue-slider" id="total-worms">
+          </div>
+          <div class="slidecontainer">
+            <p>Maximum Iterations:</p>
+            <input type="range" min="0" max="10000" value="100" class="slider blue-slider" id="maximum-iterations">
+          </div>
+          <div class="slidecontainer">
+            <p>Speed:</p>
+            <input type="range" min="0" max="100" value="20" class="slider blue-slider" id="speed">
+          </div>
+          <div class="slidecontainer">
+            <p>Breed variance (%):</p>
+            <input type="range" min="0" max="100" value="1" class="slider blue-slider" id="breed-variance">
+          </div>
+          <div class="slidecontainer">
+            <p>Random worms per generation (%):</p>
+            <input type="range" min="0" max="100" value="20" class="slider blue-slider" id="random-worms">
+          </div>
         </div>
+        <hr align="left">
+      </div>
+      <div class="run-div noselect">
+        <i class="fa fa-play run-btn cursor-pointer play-pause" onclick="togglePlay()"></i>
+        <i class="fa fa-pause run-btn cursor-pointer play-pause hide" onclick="togglePlay()"></i>
+        <i class="fa fa-stop run-btn cursor-pointer" onclick="toggleStop()"></i>
+        <i class="fa fa-undo run-btn cursor-pointer" onclick="reset()"></i>
       </div>
       <div class="top-worms-div">
-        <hr>
+        <hr align="left">
         <h3 style="margin-bottom: 0; display: inline;">Top Worms </h3>
         <span class="cursor-pointer underline noselect" onclick="document.getElementById('top-worms-table').classList.toggle('hide');">show</span>
         <table id="top-worms-table" class="hide">
@@ -198,19 +188,119 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <h3 style="display: inline;">Eaten Graph <span class="toggle-eaten-graph">(%)&nbsp;&nbsp;</span><span class="toggle-eaten-graph hide">(a/w)</span> </h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.eaten-graph-group').forEach(node => node.classList.toggle('hide'));plotPercentGraphs();">show</span>
         <span class="cursor-pointer underline noselect eaten-graph-group hide" onclick="togglePercentGraphs();">toggle</span>
-        <div class="eaten-graph eaten-graph-group hide graph-percent" style="margin-top: 1em;">
+        <div class="eaten-graph eaten-graph-group hide" style="margin-top: 1em;">
+          <div id="waiting-data" style="margin-top: 1em;">-WAITING FOR DATA-</div>
         </div>
       </div>
-      <!-- <div class="food-per-worm-graph-div graph" style="margin-top: 1em;">
-        <h3 style="margin-bottom: 0; display: inline;">Apples per Worm Graph (a/w) </h3>
-        <span class="cursor-pointer underline noselect" onclick="document.getElementById('food-per-worm-graph').classList.toggle('hide');">show</span>
-      </div> -->
     </div>
     <div class="main-div">
       <canvas class="main-canvas" id="main-canvas">
       </canvas>
     </div>
-    <div class="right-pane">
+    <div class="right-pane text-right">
+      <div class="worms-brain">
+        <h3 style="display:inline">Worms Brains</h3>
+        <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.worms-brain-box').forEach(node => node.classList.toggle('hide'));">show</span>
+        <div class="worms-brain-box">
+          <div style="margin-bottom: 1em;">
+            <h4>Algorithm:</h4>
+            <div class="custom-select" id="algorithm-select" style="margin-left: 50%;">
+              <select>
+                <option></option>
+                <option>Random Walk</option>
+                <option>Neural Network</option>
+              </select>
+            </div>
+          </div>
+          <div class="random-walk-brain">
+            <div class="tooltip">
+              <span class="cursor-pointer underline noselect">description</span>
+              <div class="algorithm-description text-left tooltiptext">
+                <p>In the <b>Random Walk</b> algorithm, the worm has a chance of
+                  changing it's dicrection at each iteration.
+                </p>
+                <p>
+                  The new random worms are sampled from a gaussian distribution and
+                  each have it's own <b>chance of turning</b> according to the
+                  <b>mean</b> and <b>standard deviation</b> in the sliders below.
+                </p>
+                <p>
+                  The breed of the most successful worms also changes it's <b>chance of turning</b>
+                  with a gaussian distribution where the mean is the parent's chance
+                  and the variance is defined in the <b>Breed variance</b> slider, in the <b>generation settings</b>
+                </p>
+              </div>
+            </div>
+            <div class="slidecontainer tooltip">
+              <p>Chance of turning - mean (%):</p>
+              <input type="range" min="0" max="100" value="10" class="slider" id="random-walk-slider-mean">
+              <!-- <span class="tooltiptext">Hello!</span> -->
+            </div>
+            <div class="slidecontainer">
+              <p>Chance of turning - std (%):</p>
+              <input type="range" min="0" max="100" value="10" class="slider red-slider" id="random-walk-slider-std">
+            </div>
+          </div>
+          <div class="neural-network-brain">
+            <div class="tooltip">
+              <span class="cursor-pointer underline noselect">description</span>
+              <div class="algorithm-description text-left tooltiptext">
+                <p>bla bla bla</p>
+              </div>
+            </div>
+            <div class="slidecontainer tooltip">
+              <p>Hello!s</p>
+              <!-- <input type="range" min="0" max="100" value="10" class="slider" id="random-walk-slider-mean"> -->
+              <!-- <span class="tooltiptext">Hello!</span> -->
+            </div>
+            <!-- <div class="slidecontainer">
+              <p>Chance of turning - std (%):</p>
+              <input type="range" min="0" max="100" value="10" class="slider red-slider" id="random-walk-slider-variance">
+            </div> -->
+          </div>
+        </div>
+        <hr align="right" />
+      </div>
+      <div class="worm-settings">
+        <h3 style="display:inline">Worms Bodies</h3>
+        <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.worms-settings-sliders').forEach(node => node.classList.toggle('hide'));">show</span>
+        <div class="worms-settings-sliders hide">
+          <div class="tooltip">
+            <span class="cursor-pointer underline noselect">description</span>
+            <div class="worm-settings-description text-left tooltiptext">
+              <p>At each iteration, a worm can move forward or change it's direction.</p>
+              <p>The forward movement has an upper limit that is defined by it's <b>maximum step size</b>. New worms are sampled from a gaussian distribution for it's <b>maximum step size</b>.</p>
+              <p>The worm's turning is limited by it's <b>turning range</b> in degrees. There's also a preferencial <b>bias</b> for turning. Both parameters are gaussian.</p>
+            </div>
+          </div>
+          <div class="slidecontainer">
+            <p>Maximum step size - mean:</p>
+            <input type="range" min="0" max="20" value="5" step="0.1" class="slider" id="step-size-mean">
+          </div>
+          <div class="slidecontainer">
+            <p>Maximum step size - std:</p>
+            <input type="range" min="0" max="20" value="1" class="slider red-slider" id="step-size-std">
+          </div>
+          <div class="slidecontainer">
+            <p>Maximum turning range - mean (°):</p>
+            <input type="range" min="0" max="360" value="90" class="slider" id="turning-range-mean">
+          </div>
+          <div class="slidecontainer">
+            <p>Maximum turning range - std (°):</p>
+            <input type="range" min="0" max="100" value="10" class="slider red-slider" id="turning-range-std">
+          </div>
+          <div class="slidecontainer">
+            <p>Maximum turning bias - mean (°):</p>
+            <input type="range" min="-180" max="180" value="0" class="slider" id="turning-bias-mean">
+          </div>
+          <div class="slidecontainer">
+            <p>Maximum turning bias - std (°):</p>
+            <input type="range" min="0" max="180" value="0" class="slider red-slider" id="turning-bias-std">
+          </div>
+        </div>
+        <hr align="right" />
+
+      </div>
     </div>
   </div>
   <div class="footer">
@@ -232,5 +322,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     </p>
   </div>
 </body>
+
+<script src="./assets/js/dropdown.js"></script>
+<script src="./assets/js/slider.js"></script>
 
 </html>
