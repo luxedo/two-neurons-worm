@@ -1,4 +1,4 @@
-/*
+  /*
 two-neurons-worm
 This is a project for creating a worm that find it's food using only
 two neurons:
@@ -16,12 +16,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-import {
-  GLOBAL_CONF,
-  GEN_CONF
-} from "./gameloop.mjs";
 import * as extra from "./extra.mjs";
-
 
 /* Classes */
 export class Worm {
@@ -78,10 +73,10 @@ export class Worm {
   drawText(text = "") {
     this.ctx.beginPath();
     this.ctx.shadowColor = this.shadowColor;
-    this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
+    this.ctx.font = this.game.conf.DEFAUT_FONT;
     this.ctx.lineWidth = 2;
     this.ctx.moveTo(this.x, this.y);
-    let size = (GLOBAL_CONF.FONT_SIZE - 8) * text.split("\n")[text.split("\n").length - 1].length;
+    let size = (this.game.conf.FONT_SIZE - 8) * text.split("\n")[text.split("\n").length - 1].length;
     if (this.x > this.game.width - size) {
       this.ctx.lineTo(this.x - 35, this.y + 25);
       this.ctx.lineTo(this.x - 200, this.y + 25);
@@ -94,7 +89,6 @@ export class Worm {
       text.split("\n").reverse().map((text, index) => this.ctx.fillText(text, this.x + 35, this.y + 20 - index * 25));
     }
   }
-
   update(apples, borderFunc) {
     let {turn, step} = this.brain.think(apples);
     if (turn) {
@@ -182,18 +176,18 @@ export class Apple {
 
 
 /* Initialize random foods */
-export function randomApples(game, number, width, height, apple_sprite_images_paths,
+export function randomApples(game, number, size, apple_sprite_images_paths,
   minIntensity, maxIntensity, borderLimit, borderFunc=null) {
+  let [width, height] = size;
   let [minX, maxX, minY, maxY] = borderLimit;
+  let color = "#F00";
   return new Array(number).fill(undefined).map(() => {
     let intensity = (Math.random() * (maxIntensity - minIntensity)) + minIntensity;
-    let x;
-    let y;
+    let x, y;
     do {
       x = extra.randomUniformInterval(minX, maxX);
       y = extra.randomUniformInterval(minY, maxY);
     } while (borderFunc != null && !borderFunc(x, y));
-    let color = "#F00";
     return new Apple(game, x, y, width, height, intensity, apple_sprite_images_paths, color);
   });
 }
@@ -225,17 +219,23 @@ export function createRandomWorm(game, size, worm_sprite_images_paths,
 
   if (body != undefined) {
     let maxStep = extra.randomBm(body.maxStepM, Math.pow(body.maxStepS, 2));
+    maxStep = maxStep<0?0:maxStep;
+    maxStep = maxStep>20?20:maxStep;
+
     let turningRange = extra.randomBm(body.maxTurnM, Math.pow(body.maxTurnS, 2));
     turningRange = turningRange>2*Math.PI?2*Math.PI:turningRange;
     turningRange = turningRange<0?0:turningRange;
     let turningBias = extra.randomBm(body.turnBiasM, Math.pow(body.turnBiasM, 2));
-    let [minTurn, maxTurn] = [turningBias-turningRange, turningBias+turningRange];
+    let [minTurn, maxTurn] = [turningBias-turningRange/2, turningBias+turningRange/2];
     worm.body = new Body(maxStep, minTurn, maxTurn);
   }
   if (brain != undefined) {
     switch (brain.algorithm) {
       case "Random Walk":
-        worm.brain = new BrainRandomWalk(brain.randomWalkM);
+        let randomWalkM = extra.randomBm(brain.randomWalkM, Math.pow(brain.randomWalkS, 2));
+        randomWalkM = randomWalkM<0?0:randomWalkM;
+        randomWalkM = randomWalkM>1?1:randomWalkM;
+        worm.brain = new BrainRandomWalk(randomWalkM);
         break;
     }
   }
@@ -249,10 +249,10 @@ export function generationStatistics(worms, apples) {
   let totalWorms = worms.length;
 }
 
-export function breedLarvae(game, worms, size, worm_sprite_images_paths,
-  names, borderLimit, borderFunc=null, generation=0) {
-  let [minX, maxX, minY, maxY] = borderLimit;
-  let larvae = new Array(worms.length).fill();
+export function breedWorms(game, worms, number, size, worm_sprite_images_paths,
+  body, brain, names, borderLimit, borderFunc=null, generation=0, randomWorms=0.2,
+  variance=0.01) {
+  let larvae = new Array(number).fill();
 
   worms = worms.filter(worm => worm.belly !== 0);
   worms.sort((a, b) => b.belly - a.belly);
@@ -262,34 +262,32 @@ export function breedLarvae(game, worms, size, worm_sprite_images_paths,
     return acc;
   }, 0);
   let parents = worms.reduce((acc, worm) => {
-    let numberOfChildren = Math.ceil(worm.belly / totalFood * worms.length);
+    let numberOfChildren = Math.ceil(worm.belly / totalFood * number);
     let parent = new Array(numberOfChildren).fill(worm);
     acc.push(...parent);
     return acc;
-  }, []).slice(0, Math.floor(worms.length * (1 - GEN_CONF.PERCENTAGE_RANDOM_WORMS)));
+  }, []).slice(0, Math.floor(number * (1 - randomWorms)));
 
   larvae = larvae.map((_, index) => {
     if (parents[index] == undefined) {
-      return createRandomWorm(game, size, worm_sprite_images_paths,  undefined, undefined,
+      return createRandomWorm(game, size, worm_sprite_images_paths, body, brain,
         names, borderLimit, borderFunc, 0, generation);
     } else {
-      return breedLarva(parents[index], names, minX, maxX, minY, maxY, borderFunc);
+      return breedWorm(parents[index], names, borderLimit, borderFunc, variance);
     }
   });
   return larvae;
 }
 
-function breedLarva(worm, names, minX, maxX, minY, maxY, borderFunc) {
-  let x = extra.randomUniformInterval(minX, maxX);
-  let y = extra.randomUniformInterval(minY, maxY);
+function breedWorm(worm, names, borderLimit, borderFunc, variance) {
+  let [minX, maxX, minY, maxY] = borderLimit;
+  let x;
+  let y;
+  do {
+    x = extra.randomUniformInterval(minX, maxX);
+    y = extra.randomUniformInterval(minY, maxY);
+  } while (borderFunc != null && !borderFunc(x, y));
   let azimuth = extra.randomAngle();
-  // let weights = {
-  //   b1: worm.weights.b1 + randomBm(0, 0.5),
-  //   w11: worm.weights.w11 + randomBm(0, 0.5),
-  //   w12: worm.weights.w12 + randomBm(0, 0.5),
-  //   b2: worm.weights.b2 + randomBm(0, 0.5),
-  //   w21: worm.weights.w21 + randomBm(0, 0.5)
-  // };
   let w = worm.w;
   let h = worm.h;
   let game = worm.game;
@@ -299,5 +297,35 @@ function breedLarva(worm, names, minX, maxX, minY, maxY, borderFunc) {
   let lastName = worm.lastName;
   let gen = worm.generation + 1;
   let ancestorGen = worm.ancestorGen;
-  return new Worm(game, x, y, w, h, azimuth, sprite_images_paths, color, firstName, lastName, gen, ancestorGen);
+  let newWorm = new Worm(game, x, y, w, h, azimuth, sprite_images_paths, color, firstName, lastName, gen, ancestorGen);
+  newWorm.body = randomizeBody(worm.body, variance);
+  newWorm.brain = randomizeBrain(worm.brain, variance);
+  return newWorm;
+}
+
+function randomizeBody(body, variance) {
+
+  let maxStep = body.maxStep;
+  let minTurn = body.minTurn;
+  let maxTurn = body.maxTurn;
+
+  maxStep = extra.randomBm(maxStep, 20*variance);
+  maxStep = maxStep<0?0:maxStep;
+  maxStep = maxStep>20?20:maxStep;
+
+  minTurn = extra.randomBm(minTurn, Math.PI*variance);
+  minTurn %= 2*Math.PI;
+  maxTurn = extra.randomBm(maxTurn, Math.PI*variance);
+  maxTurn %= 2*Math.PI;
+  return new Body(maxStep, minTurn, maxTurn);
+}
+
+function randomizeBrain(brain, variance) {
+  if (brain instanceof BrainRandomWalk) {
+    let turningChance = extra.randomBm(brain.turningChance, variance);
+    turningChance = turningChance<0?0:turningChance;
+    turningChance = turningChance>1?1:turningChance;
+    return new BrainRandomWalk(turningChance);
+  }
+  return brain;
 }

@@ -22,38 +22,17 @@ import * as screen from './screens.mjs';
  * Configuration
  */
 var GLOBAL_CONF = {
-  FPS: 30,
-  CANVAS_WIDTH: 900,
-  CANVAS_HEIGHT: 900,
   CANVAS_PADDING: 50,
   SHADOW_BLUR: 20,
   FONT_STYLE: '"monospace"',
   FONT_SIZE: 26,
+  MUTATION_LEVELS: [0, 1e-8, 1e-4, 1e-2, 1e-1, 1],
 };
 GLOBAL_CONF.DEFAUT_FONT = `${GLOBAL_CONF.FONT_SIZE}px ${GLOBAL_CONF.FONT_STYLE}`;
 loadJSON('./assets/js/names.json', response => {
   GLOBAL_CONF.NAMES = JSON.parse(response);
 });
 export {GLOBAL_CONF};
-
-var GEN_CONF = {
-  WORMS: 10,
-  APPLES: 50,
-  MAXITER: 100,
-  SPEED: 20,
-
-  MIN_WORMS: 1,
-  MAX_WORMS: 1000,
-  MIN_APPLES: 1,
-  MAX_APPLES: 1000,
-  MAX_MAXITER: 100000,
-  MIN_MAXITER: 10,
-  MIN_SPEED: 1,
-  MAX_SPEED: 100,
-
-  PERCENTAGE_RANDOM_WORMS: 0.2,
-};
-export {GEN_CONF};
 
 /*
  * Game class
@@ -75,7 +54,11 @@ export class Game {
     this.ctx.shadowOffsetY = 0;
     this.ctx.shadowBlur = GLOBAL_CONF.SHADOW_BLUR;
     this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
+    this.conf = GLOBAL_CONF;
     this.screen = new screen.BlankScreen(this.ctx);
+    this.iter = 0;
+    this.blurOscilation = Array(10).fill().map((v, i) => i+10);
+    this.blurOscilation.push(...this.blurOscilation.slice(0).reverse());
   }
 
   start() {
@@ -89,7 +72,7 @@ export class Game {
 
   run(timestamp) {
     let now = Date.now();
-    if (now >= this.nextGameTick) {
+    if (now >= this.nextGameTick && !this.pause) {
       this.nextGameTick = now + this.skipTicks;
       this.skipTicks = 1000/(this.screen.ups || this.fps);  // screen's updates per second (ups)
       this.screen.update();
@@ -99,6 +82,14 @@ export class Game {
       this.screen.draw();
       this.nextGameDraw = now + this.skipDraw;
       this.skipDraw = 1000/this.fps;
+      this.ctx.shadowBlur = this.blurOscilation[this.iter];
+      this.iter++;
+      this.iter %= this.blurOscilation.length;
+      if (this.pause) {
+        this.ctx.font = `100px ${GLOBAL_CONF.FONT_STYLE}`;
+        this.ctx.shadowColor = "#0F0";
+        this.ctx.fillText("Pause", this.width / 2 - 150, this.height / 2);
+      }
     }
     setTimeout(() => window.requestAnimationFrame(this.run.bind(this)), this.skipTicks/2);
   }

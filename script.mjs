@@ -26,12 +26,9 @@ let startScreen;
 let gameScreen;
 let closeStartScreen = true;
 
-
-window.GEN_CONF = gameloop.GEN_CONF;
-
 window.start = () => {
   screens.setupDom();
-  game = new gameloop.Game("main-canvas", 60, 900, 900);
+  game = new gameloop.Game("main-canvas", 20, 900, 900);
   startScreen = new screens.StartScreen(game);
   gameScreen = new screens.GameScreen(game);
   game.start();
@@ -39,22 +36,14 @@ window.start = () => {
   document.querySelector(".select-items").firstChild.click();
 };
 
-
-window.updateGlobalSetting = (id, ammount, lowerBound, upperBound) => {
-  let element = document.getElementById(id);
-  let actualValue = parseInt(element.textContent);
-  if (actualValue + ammount > lowerBound && actualValue + ammount < upperBound) element.textContent = actualValue + ammount;
-};
-
-
 window.togglePlay = () => {
   document.querySelectorAll(".play-pause").forEach(node => node.classList.toggle("hide"));
   if (closeStartScreen) {
     closeStartScreen = false;
-    gameScreen.pause = true;
+    game.pause = true;
     window.reset();
   }
-  gameScreen.pause = !gameScreen.pause;
+  game.pause = !game.pause;
 };
 
 window.toggleStop = () => {

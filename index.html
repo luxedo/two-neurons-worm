@@ -71,26 +71,26 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <hr align="left">
         <h3 style="display:inline;">Generation Settings</h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.generation-settings-box').forEach(node => node.classList.toggle('hide'));">show</span>
-        <div class="generation-settings-box hide">
+        <div class="generation-settings-box">
           <div class="slidecontainer">
             <p>Apples:</p>
-            <input type="range" min="0" max="1000" value="20" class="slider blue-slider" id="total-apples">
+            <input type="range" min="1" max="1000" value="20" class="slider blue-slider" id="total-apples">
           </div>
           <div class="slidecontainer">
             <p>Worms:</p>
-            <input type="range" min="0" max="1000" value="10" class="slider blue-slider" id="total-worms">
+            <input type="range" min="1" max="1000" value="10" class="slider blue-slider" id="total-worms">
           </div>
           <div class="slidecontainer">
             <p>Maximum Iterations:</p>
-            <input type="range" min="0" max="10000" value="100" class="slider blue-slider" id="maximum-iterations">
+            <input type="range" min="10" max="10000" value="100" class="slider blue-slider" id="maximum-iterations">
           </div>
           <div class="slidecontainer">
             <p>Speed:</p>
-            <input type="range" min="0" max="100" value="20" class="slider blue-slider" id="speed">
+            <input type="range" min="1" max="100" value="20" class="slider blue-slider" id="speed">
           </div>
           <div class="slidecontainer">
-            <p>Breed variance (%):</p>
-            <input type="range" min="0" max="100" value="1" class="slider blue-slider" id="breed-variance">
+            <p>Mutation level:</p>
+              <input type="range" min="0" max="5" value="1" class="slider blue-slider" id="mutation-level">
           </div>
           <div class="slidecontainer">
             <p>Random worms per generation (%):</p>
@@ -226,14 +226,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </p>
                 <p>
                   The breed of the most successful worms also changes it's <b>chance of turning</b>
-                  with a gaussian distribution where the mean is the parent's chance
-                  and the variance is defined in the <b>Breed variance</b> slider, in the <b>generation settings</b>
+                  according to the <b>Mutation level</b> defined in the <b>Generation Settings</b>.
                 </p>
               </div>
             </div>
             <div class="slidecontainer tooltip">
               <p>Chance of turning - mean (%):</p>
-              <input type="range" min="0" max="100" value="10" class="slider" id="random-walk-slider-mean">
+              <input type="range" min="0" max="100" value="20" class="slider" id="random-walk-slider-mean">
               <!-- <span class="tooltiptext">Hello!</span> -->
             </div>
             <div class="slidecontainer">
@@ -245,7 +244,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <div class="tooltip">
               <span class="cursor-pointer underline noselect">description</span>
               <div class="algorithm-description text-left tooltiptext">
-                <p>bla bla bla</p>
+                <p>The neural network</p>
               </div>
             </div>
             <div class="slidecontainer tooltip">
@@ -264,7 +263,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       <div class="worm-settings">
         <h3 style="display:inline">Worms Bodies</h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.worms-settings-sliders').forEach(node => node.classList.toggle('hide'));">show</span>
-        <div class="worms-settings-sliders hide">
+        <div class="worms-settings-sliders">
           <div class="tooltip">
             <span class="cursor-pointer underline noselect">description</span>
             <div class="worm-settings-description text-left tooltiptext">
