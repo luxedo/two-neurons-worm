@@ -74,7 +74,7 @@ export class StartScreen extends BlankScreen {
 
     let appleSize = [WORM_CONF.APPLE_WIDTH / 2, WORM_CONF.APPLE_HEIGHT / 2];
     let size = [4 * WORM_CONF.WORM_WIDTH, 4 * WORM_CONF.WORM_HEIGHT];
-    let body = {
+    let bodyConf = {
       maxStepM: 3,
       maxStepS: 0,
       maxTurnM: extra.degree2radians(90),
@@ -82,13 +82,13 @@ export class StartScreen extends BlankScreen {
       turnBiasM: 0,
       turnBiasS: 0
     };
-    let brain = {
+    let brainConf = {
       algorithm: "Random Walk",
       randomWalkM: 0.1,
       randomWalkS: 0.0
     };
     this.worms = wormModule.randomWorms(this.game, this.wormsAmmount, size,
-      WORM_CONF.worm_sprite_images_paths, body, brain, GLOBAL_CONF.NAMES,
+      WORM_CONF.worm_sprite_images_paths, bodyConf, brainConf, GLOBAL_CONF.NAMES,
       this.borderLimit, this.borderFunc);
     this.apples = wormModule.randomApples(this.game, this.applesAmmount,
       appleSize, WORM_CONF.apple_sprite_images_paths, 2, 8, this.borderLimit,
@@ -142,40 +142,30 @@ export class GameScreen extends BlankScreen {
     this.mutationLevel = input.mutationLevel;
     this.randomWorms = input.randomWorms;
 
-    let body = {
-      maxStepM: input.maxStepM,
-      maxStepS: input.maxStepS,
-      maxTurnM: input.maxTurnM,
-      maxTurnS: input.maxTurnS,
-      turnBiasM: input.turnBiasM,
-      turnBiasS: input.turnBiasS
-    };
+    let bodyConf = input.bodyConf;
 
-    let brain = {
-      algorithm: this.game.algorithm,
-      randomWalkM: input.randomWalkM,
-      randomWalkS: input.randomWalkS,
-    };
+    let brainConf = input.brainConf;
+    brainConf.algorithm = this.game.algorithm;
 
     let size = [WORM_CONF.WORM_WIDTH, WORM_CONF.WORM_HEIGHT];
     let appleSize = [WORM_CONF.APPLE_WIDTH, WORM_CONF.APPLE_HEIGHT];
     this.borderLimit = [GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING, GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING];
     this.borderFunc = extra.rectangleBorder(0, this.game.width, 0, this.game.height);
     this.worms = worms || wormModule.randomWorms(this.game, this.totalWorms, size,
-      WORM_CONF.worm_sprite_images_paths, body, brain, GLOBAL_CONF.NAMES, this.borderLimit,
+      WORM_CONF.worm_sprite_images_paths, bodyConf, brainConf, GLOBAL_CONF.NAMES, this.borderLimit,
       this.borderFunc);
     this.apples = wormModule.randomApples(this.game, this.totalApples,
       appleSize, WORM_CONF.apple_sprite_images_paths,
       2, 8, this.borderLimit, this.borderFunc);
   }
   update() {
-    if (this.iter >= this.maxiter) {
+    if (this.iter >= this.maxiter || this.eaten === this.apples.length) {
       this.game.changeScreen(new StatsScreen(this.game), [this.worms, this.apples, this.stopGeneration, this.generation]);
     }
     this.maxiter = parseInt(document.getElementById("maximum-iterations").value);
     this.speed = parseInt(document.getElementById("speed").value);
     this.ups = this.speed;
-    this.worms.map(worm => worm.update(this.apples.filter(apple => !apple.eaten), this.borderFunc));
+    this.worms.map(worm => worm.update(this.apples, this.borderFunc));
     this.apples.filter(apple => !apple.eaten).map(apple => apple.update());
     // Eating apples
     this.apples.map(apple => {
@@ -236,26 +226,16 @@ export class StatsScreen extends BlankScreen {
     this.mutationLevel = input.mutationLevel;
     this.randomWorms = input.randomWorms;
 
-    let body = {
-      maxStepM: input.maxStepM,
-      maxStepS: input.maxStepS,
-      maxTurnM: input.maxTurnM,
-      maxTurnS: input.maxTurnS,
-      turnBiasM: input.turnBiasM,
-      turnBiasS: input.turnBiasS
-    };
+    let bodyConf = input.bodyConf;
 
-    let brain = {
-      algorithm: this.game.algorithm,
-      randomWalkM: input.randomWalkM,
-      randomWalkS: input.randomWalkS,
-    };
+    let brainConf = input.brainConf;
+    brainConf.algorithm = this.game.algorithm;
 
     this.borderFunc = extra.rectangleBorder(0, this.game.width, 0, this.game.height);
     this.borderLimit = [GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING, GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING];
     let size = [WORM_CONF.WORM_WIDTH, WORM_CONF.WORM_HEIGHT];
     this.newWorms = wormModule.breedWorms(this.game, this.worms, this.totalWorms,
-      size, WORM_CONF.worm_sprite_images_paths, body, brain, GLOBAL_CONF.NAMES,
+      size, WORM_CONF.worm_sprite_images_paths, bodyConf, brainConf, GLOBAL_CONF.NAMES,
       this.borderLimit, this.borderFunc, this.generation, this.randomWorms, this.mutationLevel);
 
     this.freezeState = 10; // 10 updates frozen
@@ -498,15 +478,28 @@ function loadInputs() {
     speed: parseInt(document.getElementById("speed").value),
     mutationLevel: mutationLevels[parseInt(document.getElementById("mutation-level").value)],
     randomWorms: parseInt(document.getElementById("random-worms").value)/100,
-    // Worms Bodies
-    maxStepM: parseInt(document.getElementById("step-size-mean").value),
-    maxStepS: parseInt(document.getElementById("step-size-std").value),
-    maxTurnM: extra.degree2radians(parseInt(document.getElementById("turning-range-mean").value)),
-    maxTurnS: extra.degree2radians(parseInt(document.getElementById("turning-range-std").value)),
-    turnBiasM: extra.degree2radians(parseInt(document.getElementById("turning-bias-mean").value)),
-    turnBiasS: extra.degree2radians(parseInt(document.getElementById("turning-bias-std").value)),
-    // Worms Brains
-    randomWalkM: parseInt(document.getElementById("random-walk-slider-mean").value)/100,
-    randomWalkS: parseInt(document.getElementById("random-walk-slider-std").value)/100,
+    bodyConf: {
+
+      // Worms Bodies
+      maxStepM: parseFloat(document.getElementById("step-size-mean").value),
+      maxStepS: parseFloat(document.getElementById("step-size-std").value),
+      maxTurnM: extra.degree2radians(parseInt(document.getElementById("turning-range-mean").value)),
+      maxTurnS: extra.degree2radians(parseInt(document.getElementById("turning-range-std").value)),
+      turnBiasM: extra.degree2radians(parseInt(document.getElementById("turning-bias-mean").value)),
+      turnBiasS: extra.degree2radians(parseInt(document.getElementById("turning-bias-std").value)),
+    },
+    brainConf: {
+      // Worms Brains - Random Walk
+      randomWalkM: parseInt(document.getElementById("random-walk-slider-mean").value)/100,
+      randomWalkS: parseInt(document.getElementById("random-walk-slider-std").value)/100,
+      // Worms Brains - Two Neurons
+      twoNeuronsArch: document.querySelector("#two-neuron-arch-select>.select-selected").textContent,
+      twoNeuronsN1Activation: document.querySelector("#two-neuron-n1-activation>.select-selected").textContent,
+      twoNeuronsN1Mean: parseFloat(document.getElementById("two-neurons-n1-mean").value),
+      twoNeuronsN1Std: parseFloat(document.getElementById("two-neurons-n1-std").value),
+      twoNeuronsN2Activation: document.querySelector("#two-neuron-n2-activation>.select-selected").textContent,
+      twoNeuronsN2Mean: parseFloat(document.getElementById("two-neurons-n2-mean").value),
+      twoNeuronsN2Std: parseFloat(document.getElementById("two-neurons-n2-std").value),
+    }
   };
 }

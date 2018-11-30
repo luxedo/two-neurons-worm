@@ -105,7 +105,30 @@ export function deromanize(str) {
   return num;
 }
 
-
 export function degree2radians(degree) {
   return degree * Math.PI/180;
+}
+
+export function linear(a, b, x) {
+  return a + b*x;
+}
+
+export function logistic(x) {
+  return 1/(1+Math.exp(-x));
+}
+
+export function identity(x) {
+  return x;
+}
+
+export function relu(x) {
+  return x>0?x:0;
+}
+
+export function tanH(x) {
+  return Math.tanh(x);
+}
+
+export function step(x) {
+  return x>=0?1:0;
 }

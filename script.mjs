@@ -33,7 +33,7 @@ window.start = () => {
   gameScreen = new screens.GameScreen(game);
   game.start();
   game.changeScreen(startScreen);
-  document.querySelector(".select-items").firstChild.click();
+  document.querySelectorAll(".select-items").forEach(node =>node.firstChild.click());
 };
 
 window.togglePlay = () => {
@@ -69,13 +69,13 @@ window.selectedNode = (node) => {
     case "algorithm-select":
       let algorithm = node.textContent;
       game.algorithm = algorithm;
-      document.querySelectorAll('.random-walk-brain,.neural-network-brain').forEach(node => node.classList.add('hide'));
+      document.querySelectorAll('.random-walk-brain,.two-neurons-brain').forEach(node => node.classList.add('hide'));
       switch (algorithm) {
         case "Random Walk":
           document.querySelectorAll('.random-walk-brain').forEach(node => node.classList.remove('hide'));
           break;
-        case "Neural Network":
-          document.querySelectorAll('.neural-network-brain').forEach(node => node.classList.remove('hide'));
+        case "Two Neurons":
+          document.querySelectorAll('.two-neurons-brain').forEach(node => node.classList.remove('hide'));
           break;
         default:
       }

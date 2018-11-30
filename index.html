@@ -82,15 +82,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           </div>
           <div class="slidecontainer">
             <p>Maximum Iterations:</p>
-            <input type="range" min="10" max="10000" value="100" class="slider blue-slider" id="maximum-iterations">
+            <input type="range" min="10" max="10000" value="500" class="slider blue-slider" id="maximum-iterations">
           </div>
           <div class="slidecontainer">
             <p>Speed:</p>
-            <input type="range" min="1" max="100" value="20" class="slider blue-slider" id="speed">
+            <input type="range" min="1" max="100" value="50" class="slider blue-slider" id="speed">
           </div>
           <div class="slidecontainer">
             <p>Mutation level:</p>
-              <input type="range" min="0" max="5" value="1" class="slider blue-slider" id="mutation-level">
+            <input type="range" min="0" max="5" value="1" class="slider blue-slider" id="mutation-level">
           </div>
           <div class="slidecontainer">
             <p>Random worms per generation (%):</p>
@@ -202,13 +202,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <h3 style="display:inline">Worms Brains</h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.worms-brain-box').forEach(node => node.classList.toggle('hide'));">show</span>
         <div class="worms-brain-box">
-          <div style="margin-bottom: 1em;">
-            <h4>Algorithm:</h4>
+          <div style="margin-bottom: 0.2em;">
+            <h4 style="margin-bottom: 0.2em;">Algorithm:</h4>
             <div class="custom-select" id="algorithm-select" style="margin-left: 50%;">
               <select>
                 <option></option>
+                <option>Two Neurons</option>
                 <option>Random Walk</option>
-                <option>Neural Network</option>
               </select>
             </div>
           </div>
@@ -216,7 +216,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <div class="tooltip">
               <span class="cursor-pointer underline noselect">description</span>
               <div class="algorithm-description text-left tooltiptext">
-                <p>In the <b>Random Walk</b> algorithm, the worm has a chance of
+                <p>
+                  In the <b>Random Walk</b> algorithm, the worm has a chance of
                   changing it's dicrection at each iteration.
                 </p>
                 <p>
@@ -240,22 +241,80 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
               <input type="range" min="0" max="100" value="10" class="slider red-slider" id="random-walk-slider-std">
             </div>
           </div>
-          <div class="neural-network-brain">
+          <div class="two-neurons-brain">
             <div class="tooltip">
               <span class="cursor-pointer underline noselect">description</span>
               <div class="algorithm-description text-left tooltiptext">
-                <p>The neural network</p>
+                <p>
+                  The neural <b>Two Neurons</b> algorithm calculates if the worm
+                  should turn based on the smell of the apples. By giving the previous
+                  smell as input, the worm can detect when it is going closer to
+                  an apple and when it is going away.
+                </p>
+                <p>
+                  You can chose to arange them in series or paralel. It's also possible
+                  to chose the activation function for each one. The output of the
+                  neurons is then thrown into a sigmoid function, if the final value
+                  is greater than 0.5 the worm will continue straight, otherwise
+                  it will turn. This output also influences the size of the step.
+                </p>
+                <p>
+                  The new random worms are sampled from a gaussian distribution and
+                  each have it's own set of <b>neurons</b> that can be configured
+                  below.
+                </p>
+                <p>
+                  The breed of the most successful worms also changes it's <b>neurons</b>
+                  according to the <b>Mutation level</b> defined in the <b>Generation Settings</b>.
+                </p>
               </div>
             </div>
-            <div class="slidecontainer tooltip">
-              <p>Hello!s</p>
-              <!-- <input type="range" min="0" max="100" value="10" class="slider" id="random-walk-slider-mean"> -->
-              <!-- <span class="tooltiptext">Hello!</span> -->
+            <h4 style="margin-bottom: 0.2em;">Architecture</h4>
+            <div class="custom-select" id="two-neuron-arch-select" style="margin-left: 50%;">
+              <select>
+                <option></option>
+                <option>Parallel</option>
+                <option>Series</option>
+              </select>
             </div>
-            <!-- <div class="slidecontainer">
-              <p>Chance of turning - std (%):</p>
-              <input type="range" min="0" max="100" value="10" class="slider red-slider" id="random-walk-slider-variance">
-            </div> -->
+            <p style="margin-bottom: 0.2em;">Neuron 1 activation function</p>
+            <div class="custom-select" id="two-neuron-n1-activation" style="margin-left: 50%;">
+              <select>
+                <option></option>
+                <option>Logistic</option>
+                <option>Linear</option>
+                <option>ReLU</option>
+                <option>TanH</option>
+                <option>Step</option>
+              </select>
+            </div>
+            <div class="slidecontainer">
+              <p>Neuron 1 range - mean:</p>
+              <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="two-neurons-n1-mean">
+            </div>
+            <div class="slidecontainer">
+              <p>Neuron 1 range - std:</p>
+              <input type="range" min="0" max="1" value="0.1" step="0.01" class="slider red-slider" id="two-neurons-n1-std">
+            </div>
+            <p style="margin-bottom: 0.2em;">Neuron 2 activation function</p>
+            <div class="custom-select" id="two-neuron-n2-activation" style="margin-left: 50%;">
+              <select>
+                <option></option>
+                <option>Logistic</option>
+                <option>Linear</option>
+                <option>ReLU</option>
+                <option>TanH</option>
+                <option>Step</option>
+              </select>
+            </div>
+            <div class="slidecontainer">
+              <p>Neuron 2 range - mean:</p>
+              <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="two-neurons-n2-mean">
+            </div>
+            <div class="slidecontainer">
+              <p>Neuron 2 range - std:</p>
+              <input type="range" min="0" max="1" value="0.1" step="0.01" class="slider red-slider" id="two-neurons-n2-std">
+            </div>
           </div>
         </div>
         <hr align="right" />
@@ -278,11 +337,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           </div>
           <div class="slidecontainer">
             <p>Maximum step size - std:</p>
-            <input type="range" min="0" max="20" value="1" class="slider red-slider" id="step-size-std">
+            <input type="range" min="0" max="20" value="1" step="0.1" class="slider red-slider" id="step-size-std">
           </div>
           <div class="slidecontainer">
             <p>Maximum turning range - mean (°):</p>
-            <input type="range" min="0" max="360" value="90" class="slider" id="turning-range-mean">
+            <input type="range" min="0" max="360" value="180" class="slider" id="turning-range-mean">
           </div>
           <div class="slidecontainer">
             <p>Maximum turning range - std (°):</p>

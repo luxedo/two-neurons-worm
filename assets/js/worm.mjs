@@ -90,13 +90,21 @@ export class Worm {
     }
   }
   update(apples, borderFunc) {
-    let {turn, step} = this.brain.think(apples);
+    let {turn, step} = this.brain.think(this, apples);
     if (turn) {
       this.azimuth += extra.randomUniformInterval(this.body.minTurn, this.body.maxTurn);
     } else {
       step = step<this.body.maxStep?step:this.body.maxStep;
       this.move(step, this.azimuth, borderFunc);
     }
+  }
+}
+
+class Body {
+  constructor(maxStep, minTurn, maxTurn) {
+    this.maxStep = maxStep;
+    this.minTurn = minTurn;
+    this.maxTurn = maxTurn;
   }
 }
 
@@ -115,15 +123,7 @@ class NoBrain {
   }
 }
 
-class Body {
-  constructor(maxStep, minTurn, maxTurn) {
-    this.maxStep = maxStep;
-    this.minTurn = minTurn;
-    this.maxTurn = maxTurn;
-  }
-}
-
-export class BrainRandomWalk extends NoBrain{
+export class BrainRandomWalk extends NoBrain {
   constructor(turningChance) {
     super();
     this.turningChance = turningChance;
@@ -133,6 +133,63 @@ export class BrainRandomWalk extends NoBrain{
   }
   stepSize() {
     return Infinity;
+  }
+}
+
+export class BrainTwoNeurons extends NoBrain {
+  constructor(arch, weights1, activation1, weights2, activation2) {
+    super();
+    this.actFuncs = {
+      Logistic: extra.logistic,
+      Linear: extra.identity,
+      ReLU: extra.relu,
+      TanH: extra.tanH,
+      Step: extra.step,
+    };
+    this.networkArchs = {
+      Series: this.seriesNetwork,
+      Parallel: this.parallelNetwork
+    };
+    this.arch = "Series";
+    // this.arch = arch;
+    this.network = this.networkArchs[this.arch];
+    this.weights1 = weights1;
+    // this.activation1 = activation1;
+    this.activation1 = "Linear";
+    this.actFunc1 = this.actFuncs[this.activation1];
+    this.weights2 = weights2;
+    this.activation2 = "Logistic";
+    // this.activation2 = activation2;
+    this.actFunc2 = this.actFuncs[this.activation2];
+    this.scentMemory = 0;
+    this.turned = 0;
+  }
+  seriesNetwork(scent, scentMemory) {
+    let input1 = this.weights1.b1 + this.weights1.w1*scent + this.weights1.w2*scentMemory;
+    let output1 = this.actFunc1(input1);
+    let input2 = this.weights2.b1 + this.weights2.w1*output1 + this.weights2.w2*this.turned;
+    let output2 = this.actFunc2(input2);
+    return {
+      turn: output2<0.5,  // If the output is low, turn
+      step: 20*output2    // Otherwise step forwards
+    };
+  }
+  parallelNetwork(scent, scentMemory) {
+    let input1 = this.weights1.b1 + this.weights1.w1*scent + this.weights1.w2*scentMemory;
+    let input2 = this.weights2.b1 + this.weights2.w1*scent + this.weights2.w2*scentMemory;
+    let output1 = this.actFunc1(input1);
+    let output2 = this.actFunc2(input2);
+    return {
+      step: 20*output1,  // the first neuron makes the worm move forwards
+      turn: output2>0.5  // the second neuron makes the worm turn if the scent decreases
+    };
+  }
+  think(worm, apples) {
+    let scent = apples.reduce((acc, apple) => acc+apple.scent(worm.x, worm.y), 0);
+    let result = this.network(scent, this.scentMemory);
+    this.turned = result.turn?1:0;
+    this.scentMemory = scent;
+    return result;
   }
 }
 
@@ -160,7 +217,7 @@ export class Apple {
   }
 
   scent(x, y) {
-    return this.eaten ? 0 : this.intensity / Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2);
+    return this.eaten ? 0 : this.intensity / (Math.pow(this.x - x, 2) + Math.pow(this.y - y, 2));
   }
 
   update() {
@@ -192,10 +249,10 @@ export function randomApples(game, number, size, apple_sprite_images_paths,
   });
 }
 
-export function randomWorms(game, number, size, worm_sprite_images_paths,
-  body, brain, names, borderLimit, borderFunc=null, generation=0, ancestorGen=0) {
+export function randomWorms(game, number, size, worm_sprite_images_paths, bodyConf,
+  brainConf, names, borderLimit, borderFunc=null, generation=0, ancestorGen=0) {
   return new Array(number).fill(0).map(() => createRandomWorm(game, size, worm_sprite_images_paths,
-    body, brain, names, borderLimit, borderFunc, generation, ancestorGen));
+    bodyConf, brainConf, names, borderLimit, borderFunc, generation, ancestorGen));
 }
 
 export function createRandomWorm(game, size, worm_sprite_images_paths,
@@ -228,6 +285,8 @@ export function createRandomWorm(game, size, worm_sprite_images_paths,
     let turningBias = extra.randomBm(body.turnBiasM, Math.pow(body.turnBiasM, 2));
     let [minTurn, maxTurn] = [turningBias-turningRange/2, turningBias+turningRange/2];
     worm.body = new Body(maxStep, minTurn, maxTurn);
+  } else {
+    worm.body = new Body(1, -Math.PI/4, Math.PI/4);
   }
   if (brain != undefined) {
     switch (brain.algorithm) {
@@ -237,6 +296,36 @@ export function createRandomWorm(game, size, worm_sprite_images_paths,
         randomWalkM = randomWalkM>1?1:randomWalkM;
         worm.brain = new BrainRandomWalk(randomWalkM);
         break;
+      case "Two Neurons":
+        let arch = brain.twoNeuronsArch;
+        let activation1 = brain.twoNeuronsN1Activation;
+        let activation2 = brain.twoNeuronsN2Activation;
+        let weights1 = {
+          // b1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
+          // w1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
+          // w2: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
+          // b1: extra.randomUniformInterval(-1, 1),
+          // w1: extra.randomUniformInterval(-1, 1),
+          // w2: extra.randomUniformInterval(-1, 1),
+          b1: 0,
+          w1: 1,
+          w2: -1,
+        };
+        let weights2 = {
+          // b1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
+          // w1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
+          // w2: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
+          // b1: extra.randomUniformInterval(-1, 1),
+          // w1: extra.randomUniformInterval(-1, 1),
+          // w2: extra.randomUniformInterval(-1, 1),
+          b1: 0,
+          w1: 1,
+          w2: 1,
+        };
+        worm.brain = new BrainTwoNeurons(arch, weights1, activation1, weights2, activation2);
+        break;
+      default:
+        worm.brain = new NoBrain();
     }
   }
   return worm;
@@ -250,7 +339,7 @@ export function generationStatistics(worms, apples) {
 }
 
 export function breedWorms(game, worms, number, size, worm_sprite_images_paths,
-  body, brain, names, borderLimit, borderFunc=null, generation=0, randomWorms=0.2,
+  bodyConf, brainConf, names, borderLimit, borderFunc=null, generation=0, randomWorms=0.2,
   variance=0.01) {
   let larvae = new Array(number).fill();
 
@@ -267,11 +356,10 @@ export function breedWorms(game, worms, number, size, worm_sprite_images_paths,
     acc.push(...parent);
     return acc;
   }, []).slice(0, Math.floor(number * (1 - randomWorms)));
-
   larvae = larvae.map((_, index) => {
     if (parents[index] == undefined) {
-      return createRandomWorm(game, size, worm_sprite_images_paths, body, brain,
-        names, borderLimit, borderFunc, 0, generation);
+      return createRandomWorm(game, size, worm_sprite_images_paths, bodyConf,
+        brainConf, names, borderLimit, borderFunc, 0, generation);
     } else {
       return breedWorm(parents[index], names, borderLimit, borderFunc, variance);
     }
@@ -326,6 +414,21 @@ function randomizeBrain(brain, variance) {
     turningChance = turningChance<0?0:turningChance;
     turningChance = turningChance>1?1:turningChance;
     return new BrainRandomWalk(turningChance);
+  } else if (brain instanceof BrainTwoNeurons) {
+    let arch = brain.arch;
+    let activation1 = brain.activation1;
+    let activation2 = brain.activation2;
+    let weights1 = {
+      b1: extra.randomBm(brain.weights1.b1, variance),
+      w1: extra.randomBm(brain.weights1.w1, variance),
+      w2: extra.randomBm(brain.weights1.w2, variance),
+    };
+    let weights2 = {
+      b1: extra.randomBm(brain.weights2.b1, variance),
+      w1: extra.randomBm(brain.weights2.w1, variance),
+      w2: extra.randomBm(brain.weights2.w2, variance),
+    };
+    return new BrainTwoNeurons(arch, weights1, activation1, weights2, activation2);
   }
   return brain;
 }
