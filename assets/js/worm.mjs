@@ -210,8 +210,8 @@ export class Apple {
       return img;
     });
     this.shadowColor = shadowColor;
-    this.sizeX = this.w * Math.log2(this.intensity);
-    this.sizeY = this.h * Math.log2(this.intensity);
+    this.sizeX = this.w * Math.log(this.intensity/1000);
+    this.sizeY = this.h * Math.log(this.intensity/1000);
     this.eaten = false;
     this.eatenIter=null;
   }
@@ -304,23 +304,23 @@ export function createRandomWorm(game, size, worm_sprite_images_paths,
           // b1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
           // w1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
           // w2: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
-          // b1: extra.randomUniformInterval(-1, 1),
-          // w1: extra.randomUniformInterval(-1, 1),
-          // w2: extra.randomUniformInterval(-1, 1),
-          b1: 0,
-          w1: 1,
-          w2: -1,
+          b1: extra.randomUniformInterval(-1, 1),
+          w1: extra.randomUniformInterval(-1, 1),
+          w2: extra.randomUniformInterval(-1, 1),
+          // b1: 0,
+          // w1: 1,
+          // w2: -1,
         };
         let weights2 = {
           // b1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
           // w1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
           // w2: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
-          // b1: extra.randomUniformInterval(-1, 1),
-          // w1: extra.randomUniformInterval(-1, 1),
-          // w2: extra.randomUniformInterval(-1, 1),
-          b1: 0,
-          w1: 1,
-          w2: 1,
+          b1: extra.randomUniformInterval(-1, 1),
+          w1: extra.randomUniformInterval(-1, 1),
+          w2: extra.randomUniformInterval(-1, 1),
+          // b1: 0,
+          // w1: 1,
+          // w2: 1,
         };
         worm.brain = new BrainTwoNeurons(arch, weights1, activation1, weights2, activation2);
         break;

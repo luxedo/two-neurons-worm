@@ -35,7 +35,6 @@ const WORM_CONF = {
   WORM_HEIGHT: 20,
   APPLE_WIDTH: 20,
   APPLE_HEIGHT: 20,
-
   EAT_DISTANCE: 20,
 };
 export {
@@ -156,7 +155,7 @@ export class GameScreen extends BlankScreen {
       this.borderFunc);
     this.apples = wormModule.randomApples(this.game, this.totalApples,
       appleSize, WORM_CONF.apple_sprite_images_paths,
-      2, 8, this.borderLimit, this.borderFunc);
+      20000, 80000, this.borderLimit, this.borderFunc);
   }
   update() {
     if (this.iter >= this.maxiter || this.eaten === this.apples.length) {
