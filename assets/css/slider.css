@@ -6,7 +6,7 @@
 .slider {
     -webkit-appearance: none;  /* Override default CSS styles */
     appearance: none;
-    width: 12em; 
+    width: 12em;
     height: 0.5em; /* Specified height */
     background: #d3d3d3; /* Grey background */
     outline: none; /* Remove outline */
@@ -58,7 +58,7 @@ input[type=number] {
   color: #EEE;
   font-family: monospace;
   padding: 0.5em;
-  width: 3em;
+  width: 4em;
 }
 
 input[type=number]::-webkit-outer-spin-button,

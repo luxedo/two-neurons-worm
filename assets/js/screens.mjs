@@ -1,7 +1,6 @@
 /*
 two-neurons-worm
-This is a project for creating a worm that find it's food using only
-two neurons:
+This is a project for creating a worm that find it's food using two neurons:
 https://phys.org/news/2018-07-reveals-complex-math-worms-food.html
 
 Copyright (C) 2017  Luiz Eduardo Amaral - <luizamaral306@gmail.com>
@@ -41,12 +40,51 @@ export {
   WORM_CONF
 };
 
+export function clearGraphs(game) {
+  // Reset graphs
+  if (game !== undefined) {
+    game.foodPerWormHistory = [];
+    game.eatenHistory = [];
+    plotPercentGraphs(game);
+  }
+}
+
 export function setupDom() {
   // General stats
   document.getElementById("elapsed-span").textContent = "00:00:00";
   document.getElementById("generation-span").textContent = "0";
   document.getElementById("total-eaten-span").textContent = `0\t(0% - 0a/w)`;
   document.getElementById("remaining-iterations-span").textContent = 100;
+
+  Array(5).fill(0).map((_, index) => {
+    //Empty top worms
+    document.getElementById(`worm${index}-name`).parentElement.style.color = "#EEE";
+    document.getElementById(`worm${index}-name`).textContent = "";
+    document.getElementById(`worm${index}-belly`).textContent = "";
+    // Empty ancestor table
+    document.getElementById(`ancestor${index}-name`).parentElement.style.color = "#EEE";
+    document.getElementById(`ancestor${index}-name`).textContent = "";
+    document.getElementById(`ancestor${index}-gen`).textContent = "";
+    document.getElementById(`ancestor${index}-breed`).textContent = "";
+  });
+  // Reset Inspect Worm
+  document.getElementById("name-value").textContent = `Name`;
+  document.getElementById("belly-value").textContent = `Belly`;
+  document.getElementById("algorithm-value").textContent = `Algorithm`;
+  document.getElementById("brain-n1-b1").value = 0;
+  document.getElementById("brain-n1-w1").value = 0;
+  document.getElementById("brain-n1-w2").value = 0;
+  document.getElementById("brain-n1-w3").value = 0;
+  document.getElementById("brain-n2-b1").value = 0;
+  document.getElementById("brain-n2-w1").value = 0;
+  document.getElementById("brain-n2-w2").value = 0;
+  document.getElementById("brain-n2-w3").value = 0;
+  document.getElementById("body-max-step").value = 0;
+  document.getElementById("body-turn-left").value = 0;
+  document.getElementById("body-turn-right").value = 0;
+  document.getElementById("turning-chance-value").value = 0;
+  document.querySelectorAll(".two-neurons-values").forEach(node => node.classList.add("hide"));
+  document.querySelectorAll(".random-walk-values").forEach(node => node.classList.add("hide"));
 }
 
 export class BlankScreen {
@@ -90,7 +128,7 @@ export class StartScreen extends BlankScreen {
       WORM_CONF.worm_sprite_images_paths, bodyConf, brainConf, GLOBAL_CONF.NAMES,
       this.borderLimit, this.borderFunc);
     this.apples = wormModule.randomApples(this.game, this.applesAmmount,
-      appleSize, WORM_CONF.apple_sprite_images_paths, 2, 8, this.borderLimit,
+      appleSize, WORM_CONF.apple_sprite_images_paths, 2e5, 8e5, this.borderLimit,
       this.borderFunc);
   }
   update() {
@@ -107,7 +145,9 @@ export class StartScreen extends BlankScreen {
     this.ctx.fillText("RULES:", 100, 160);
     this.ctx.fillText("← Mess with generation settings", 100, 200);
     this.ctx.fillText("→ Mess with worms neurons", 100, 220);
-    this.ctx.fillText("• BE THE VERY BEST WORM TRAINER •", 100, 240);
+    // this.ctx.fillText("• Have them eat 100% of the apples consistently •", 100, 240);
+    this.ctx.fillText("• Hit play and the worms will start learning •", 100, 240);
+    this.ctx.fillText("• BE THE VERY BEST WORM TRAINER •", 100, 260);
 
     // this.ctx.fillText("← CHOSE GENERATION SETTINGS", 100, 230);
     // this.ctx.fillText("← PRESS PLAY TO START TRAINING", 100, 250);
@@ -116,22 +156,22 @@ export class StartScreen extends BlankScreen {
     // this.ctx.fillText("         CHOSE WORMS NEURONS →", 100, 320);
     // this.ctx.fillText("          CHOSE WORMS INPUTS →", 100, 340);
     // this.ctx.fillText("CHOSE WORMS GENETIC VARIANCE →", 100, 360);
+    this.apples.map(apple => apple.draw());
     this.worms.map(worm => {
       worm.draw();
       worm.drawText(`Mounthless Random Walk\n${worm.fullName}`);
     });
-    this.apples.map(apple => apple.draw());
   }
 }
 
 export class GameScreen extends BlankScreen {
-  init(worms, generation) {
+  init(worms, generation, startingTime) {
     this.generation = generation || 0;
 
     this.iter = 0;
+    this.bangLevel = 12;
     this.eaten = 0;
-    this.startingTime = Date.now();
-    this.stopGeneration = false;
+    this.startingTime = startingTime || Date.now();
 
     let input = loadInputs();
     this.totalWorms = input.totalWorms;
@@ -155,15 +195,20 @@ export class GameScreen extends BlankScreen {
       this.borderFunc);
     this.apples = wormModule.randomApples(this.game, this.totalApples,
       appleSize, WORM_CONF.apple_sprite_images_paths,
-      20000, 80000, this.borderLimit, this.borderFunc);
+      5e5, 1e6, this.borderLimit, this.borderFunc);
   }
   update() {
+    if (this.game.pause) {
+      return;
+    }
+    // Stopping conditions: 1. reached maxiter, 2. eaten all apples
     if (this.iter >= this.maxiter || this.eaten === this.apples.length) {
-      this.game.changeScreen(new StatsScreen(this.game), [this.worms, this.apples, this.stopGeneration, this.generation]);
+      this.game.changeScreen(new StatsScreen(this.game), [this.worms, this.apples, this.generation, this.startingTime]);
     }
     this.maxiter = parseInt(document.getElementById("maximum-iterations").value);
     this.speed = parseInt(document.getElementById("speed").value);
     this.ups = this.speed;
+
     this.worms.map(worm => worm.update(this.apples, this.borderFunc));
     this.apples.filter(apple => !apple.eaten).map(apple => apple.update());
     // Eating apples
@@ -172,34 +217,66 @@ export class GameScreen extends BlankScreen {
         this.worms.map(worm => {
           if (extra.distance(worm.x, worm.y, apple.x, apple.y) < WORM_CONF.EAT_DISTANCE) {
             worm.belly++;
+            worm.eaten = true;
+            worm.showEaten = 10;
             apple.eaten = true;
             apple.eatenIter = this.iter;
           }
         });
       }
     });
+    let lastEaten = this.eaten;
     this.eaten = this.apples.filter(apple => apple.eaten).length;
+    if (this.eaten > lastEaten) {
+      this.bangLevel += 3;
+    }
     this.iter++;
   }
   draw() {
     this.ctx.clearRect(0, 0, this.game.width, this.game.height);
     let maxEaten = 1;
     let glutton = [];
+    this.apples.filter(apple => !apple.eaten).map(apple => apple.draw());
     this.worms.map(worm => {
+      worm.draw();
+      if (worm.eaten) {
+        worm.showEaten--;
+        if (worm.showEaten>0) {
+          worm.drawText("Score!", "#00F", 100, 26+worm.showEaten);
+          return;
+        } else {
+          worm.eaten = false;
+        }
+      }
       if (worm.belly > maxEaten) {
         glutton = [worm];
         maxEaten = worm.belly;
       } else if (worm.belly == maxEaten) glutton.push(worm);
-      worm.draw();
+      if (worm === this.game.wormInspect) {
+        worm.drawText(`Inspect\n${worm.belly} Apples\n${worm.fullName}`, "#F00");
+      }
     });
     glutton.map(worm => worm.drawText(`${maxEaten} Apples\n${worm.fullName}`));
-    this.apples.filter(apple => !apple.eaten).map(apple => apple.draw());
+    this.ctx.font = `${this.bangLevel}px ${GLOBAL_CONF.FONT_STYLE}`;
+    this.ctx.shadowColor = "#00F";
+
+    this.bangLevel--;
+    this.bangLevel = this.bangLevel<80?this.bangLevel:80;
+    this.bangLevel = this.bangLevel>12?this.bangLevel:12;
+    this.ctx.fillText(`${this.eaten} Apples - ${(this.eaten/this.apples.length*100).toFixed(0)}%`, 10, this.game.height-10);
+
+    if (this.game.pause) {
+      this.ctx.font = `100px ${GLOBAL_CONF.FONT_STYLE}`;
+      this.ctx.shadowColor = "#0F0";
+      this.ctx.fillText("Pause", this.game.width / 2 - 150, this.game.height / 2);
+    }
   }
   updateDom() {
     document.getElementById("generation-span").textContent = this.generation;
     document.getElementById("elapsed-span").textContent = new Date(Date.now() - this.startingTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/);
     document.getElementById("total-eaten-span").textContent = `${this.eaten.toString().padEnd(4)}(${(100*this.eaten/this.apples.length).toFixed(2)}% - ${(this.eaten/this.worms.length).toFixed(2)}a/w)`;
-    document.getElementById("remaining-iterations-span").textContent = `${this.maxiter-this.iter} (${((this.maxiter-this.iter)/this.speed).toFixed(2)}s)`;
+    // document.getElementById("remaining-iterations-span").textContent = `${this.maxiter-this.iter} (${((this.maxiter-this.iter)/this.speed).toFixed(2)}s)`;
+    document.getElementById("remaining-iterations-span").textContent = `${this.maxiter-this.iter}`;
     this.worms.sort((a, b) => b.belly - a.belly).slice(0, 5).map((worm, index) => {
       document.getElementById(`worm${index}-name`).parentElement.style.color = worm.shadowColor;
       document.getElementById(`worm${index}-name`).textContent = worm.fullName;
@@ -210,11 +287,13 @@ export class GameScreen extends BlankScreen {
 
 export class StatsScreen extends BlankScreen {
   // COMBAK: Think about this properly
-  init(worms, apples, stopGeneration, generation) {
+  init(worms, apples, generation, startingTime) {
+    setupDom(this.game);
+    this.startingTime = startingTime;
+
     this.worms = worms;
     this.apples = apples;
     this.eaten = this.apples.filter(apple => apple.eaten).length;
-    this.stopGeneration = stopGeneration || false;
     this.generation = generation || 0;
 
     let input = loadInputs();
@@ -251,7 +330,6 @@ export class StatsScreen extends BlankScreen {
       worm.dx = (fx - worm.x) / this.slidingAnimation;
       worm.dy = (slope * worm.dx);
       return worm;
-
     });
     this.topWorms.map(worm => worm.drawText(worm.fullName));
 
@@ -275,7 +353,9 @@ export class StatsScreen extends BlankScreen {
   }
   update() {
     this.iter++;
-    if (this.stopGeneration) {
+    if (this.game.stopGeneration) {
+      document.querySelectorAll(".fa-play").forEach(node => node.classList.remove("hide"));
+      document.querySelectorAll(".fa-pause").forEach(node => node.classList.add("hide"));
       if (this.iter > this.freezeState && this.iter <= this.slidingAnimation + this.freezeState) {
         this.topWorms.map(worm => {
           worm.x += worm.dx;
@@ -288,7 +368,9 @@ export class StatsScreen extends BlankScreen {
         });
       }
     } else {
-      if (this.iter > 15) this.game.changeScreen(new GameScreen(this.game), [this.newWorms, this.generation + 1]);
+      if (this.iter > 10) {
+        this.game.changeScreen(new GameScreen(this.game), [this.newWorms, this.generation + 1, this.startingTime]);
+      }
     }
   }
   draw() {
@@ -296,7 +378,8 @@ export class StatsScreen extends BlankScreen {
     this.glowIter++;
     this.glowIter %= this.blurOscilation.length;
     this.ctx.shadowBlur = this.blurOscilation[this.glowIter];
-    if (this.stopGeneration) {
+    document.getElementById("elapsed-span").textContent = new Date(Date.now() - this.startingTime).toUTCString().match(/\d{2}:\d{2}:\d{2}/);
+    if (this.game.stopGeneration) {
       if (this.iter < this.freezeState + this.slidingAnimation) {
         this.topWorms.map(worm => {
           worm.draw();
@@ -322,8 +405,8 @@ export class StatsScreen extends BlankScreen {
       this.ctx.font = `50px ${GLOBAL_CONF.FONT_STYLE}`;
       this.ctx.shadowColor = "#F00";
       this.ctx.fillText("End Gen", 340, this.game.height / 2 - 110);
-      if (this.iter < 5) this.ctx.fillText("Breeding.", 330, this.game.height / 2 - 50);
-      else if (this.iter < 10) this.ctx.fillText("Breeding..", 330, this.game.height / 2 - 50);
+      if (this.iter < 3) this.ctx.fillText("Breeding.", 330, this.game.height / 2 - 50);
+      else if (this.iter < 6) this.ctx.fillText("Breeding..", 330, this.game.height / 2 - 50);
       else this.ctx.fillText("Breeding...", 330, this.game.height / 2 - 50);
       this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
       this.worms.map(worm => worm.draw());
@@ -332,12 +415,6 @@ export class StatsScreen extends BlankScreen {
     }
   }
   fillAncestorTable(worms) {
-    new Array(5).fill(0).map((_, index) => {
-      document.getElementById(`ancestor${index}-name`).parentElement.style.color = "#EEE";
-      document.getElementById(`ancestor${index}-name`).textContent = "";
-      document.getElementById(`ancestor${index}-gen`).textContent = "";
-      document.getElementById(`ancestor${index}-breed`).textContent = "";
-    });
     Object.entries(worms
         .reduce((acc, worm) => {
           if (acc.hasOwnProperty(worm.lastName)) acc[worm.lastName].breed++;
@@ -360,6 +437,7 @@ export class StatsScreen extends BlankScreen {
 }
 
 export function plotLine(selector, data, width, height) {
+  d3.selectAll(`${selector} > svg`).remove();
   if (data == undefined || data.length < 2) return "no data";
   if (data.length > width / 2) {
     data = data.slice(data.length - width / 2, data.length);
@@ -396,7 +474,6 @@ export function plotLine(selector, data, width, height) {
       .ticks(4)
       .tickSizeInner(-5)
       .tickSizeOuter(0));
-  d3.selectAll(`${selector} > svg`).remove();
   let svg = d3.select(selector)
     .append("svg")
     .attr("width", width)
@@ -466,7 +543,6 @@ export function plotPercentGraphs(game) {
   }
 }
 
-
 function loadInputs() {
   let mutationLevels = GLOBAL_CONF.MUTATION_LEVELS;
   return {
@@ -492,7 +568,8 @@ function loadInputs() {
       randomWalkM: parseInt(document.getElementById("random-walk-slider-mean").value)/100,
       randomWalkS: parseInt(document.getElementById("random-walk-slider-std").value)/100,
       // Worms Brains - Two Neurons
-      twoNeuronsArch: document.querySelector("#two-neuron-arch-select>.select-selected").textContent,
+      // twoNeuronsArch: document.querySelector("#two-neuron-arch-select>.select-selected").textContent,
+      twoNeuronsArch: "Parallel",
       twoNeuronsN1Activation: document.querySelector("#two-neuron-n1-activation>.select-selected").textContent,
       twoNeuronsN1Mean: parseFloat(document.getElementById("two-neurons-n1-mean").value),
       twoNeuronsN1Std: parseFloat(document.getElementById("two-neurons-n1-std").value),

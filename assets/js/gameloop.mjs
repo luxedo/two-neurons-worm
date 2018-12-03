@@ -1,7 +1,6 @@
 /*
 two-neurons-worm
-This is a project for creating a worm that find it's food using only
-two neurons:
+This is a project for creating a worm that find it's food using two neurons:
 https://phys.org/news/2018-07-reveals-complex-math-worms-food.html
 
 Copyright (C) 2017  Luiz Eduardo Amaral - <luizamaral306@gmail.com>
@@ -26,7 +25,7 @@ var GLOBAL_CONF = {
   SHADOW_BLUR: 20,
   FONT_STYLE: '"monospace"',
   FONT_SIZE: 26,
-  MUTATION_LEVELS: [0, 1e-8, 1e-4, 1e-2, 1e-1, 1],
+  MUTATION_LEVELS: [0, 1e-13, 1e-10, 1e-7, 1e-4, 1e-1],
 };
 GLOBAL_CONF.DEFAUT_FONT = `${GLOBAL_CONF.FONT_SIZE}px ${GLOBAL_CONF.FONT_STYLE}`;
 loadJSON('./assets/js/names.json', response => {
@@ -85,11 +84,6 @@ export class Game {
       this.ctx.shadowBlur = this.blurOscilation[this.iter];
       this.iter++;
       this.iter %= this.blurOscilation.length;
-      if (this.pause) {
-        this.ctx.font = `100px ${GLOBAL_CONF.FONT_STYLE}`;
-        this.ctx.shadowColor = "#0F0";
-        this.ctx.fillText("Pause", this.width / 2 - 150, this.height / 2);
-      }
     }
     setTimeout(() => window.requestAnimationFrame(this.run.bind(this)), this.skipTicks/2);
   }

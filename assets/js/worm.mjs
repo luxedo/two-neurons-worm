@@ -1,7 +1,6 @@
   /*
 two-neurons-worm
-This is a project for creating a worm that find it's food using only
-two neurons:
+This is a project for creating a worm that find it's food using two neurons:
 https://phys.org/news/2018-07-reveals-complex-math-worms-food.html
 
 Copyright (C) 2017  Luiz Eduardo Amaral - <luizamaral306@gmail.com>
@@ -70,21 +69,24 @@ export class Worm {
     this.ctx.restore();
   }
 
-  drawText(text = "") {
+  drawText(text, color, lineLength, fontSize) {
+    text = text || "";
+    lineLength = lineLength || 170;
+    fontSize = fontSize || this.game.conf.FONT_SIZE;
     this.ctx.beginPath();
-    this.ctx.shadowColor = this.shadowColor;
-    this.ctx.font = this.game.conf.DEFAUT_FONT;
+    this.ctx.shadowColor = color || this.shadowColor;
+    this.ctx.font =  `${fontSize}px ${this.game.conf.FONT_STYLE}`;
     this.ctx.lineWidth = 2;
     this.ctx.moveTo(this.x, this.y);
-    let size = (this.game.conf.FONT_SIZE - 8) * text.split("\n")[text.split("\n").length - 1].length;
+    let size = (fontSize - 8) * text.split("\n")[text.split("\n").length - 1].length;
     if (this.x > this.game.width - size) {
       this.ctx.lineTo(this.x - 35, this.y + 25);
-      this.ctx.lineTo(this.x - 200, this.y + 25);
+      this.ctx.lineTo(this.x - (35+lineLength), this.y + 25);
       this.ctx.stroke();
       text.split("\n").reverse().map((text, index) => this.ctx.fillText(text, this.x - size, this.y + 20 - index * 25));
     } else {
       this.ctx.lineTo(this.x + 35, this.y + 25);
-      this.ctx.lineTo(this.x + 200, this.y + 25);
+      this.ctx.lineTo(this.x + (35+lineLength), this.y + 25);
       this.ctx.stroke();
       text.split("\n").reverse().map((text, index) => this.ctx.fillText(text, this.x + 35, this.y + 20 - index * 25));
     }
@@ -150,33 +152,34 @@ export class BrainTwoNeurons extends NoBrain {
       Series: this.seriesNetwork,
       Parallel: this.parallelNetwork
     };
-    this.arch = "Series";
-    // this.arch = arch;
+    this.arch = arch;
     this.network = this.networkArchs[this.arch];
     this.weights1 = weights1;
-    // this.activation1 = activation1;
-    this.activation1 = "Linear";
+    this.activation1 = activation1;
     this.actFunc1 = this.actFuncs[this.activation1];
     this.weights2 = weights2;
-    this.activation2 = "Logistic";
-    // this.activation2 = activation2;
+    this.activation2 = activation2;
     this.actFunc2 = this.actFuncs[this.activation2];
     this.scentMemory = 0;
     this.turned = 0;
   }
   seriesNetwork(scent, scentMemory) {
+    // COMBAK: Gotta think better about this, at least have a better argument for using this architecture
+    // let input1 = this.weights1.b1 + this.weights1.w1*scent + this.weights1.w2*scentMemory+this.weights1.w3*this.turned;
     let input1 = this.weights1.b1 + this.weights1.w1*scent + this.weights1.w2*scentMemory;
     let output1 = this.actFunc1(input1);
-    let input2 = this.weights2.b1 + this.weights2.w1*output1 + this.weights2.w2*this.turned;
+    let input2 = this.weights2.b1 + this.weights2.w1*output1;
     let output2 = this.actFunc2(input2);
     return {
       turn: output2<0.5,  // If the output is low, turn
-      step: 20*output2    // Otherwise step forwards
+      step: 20    // Otherwise step forwards
     };
   }
   parallelNetwork(scent, scentMemory) {
-    let input1 = this.weights1.b1 + this.weights1.w1*scent + this.weights1.w2*scentMemory;
-    let input2 = this.weights2.b1 + this.weights2.w1*scent + this.weights2.w2*scentMemory;
+    // let input1 = this.weights1.b1 + this.weights1.w1*scent + this.weights1.w2*scentMemory;
+    // let input2 = this.weights2.b1 + this.weights2.w1*scent + this.weights2.w2*scentMemory;
+    let input1 = this.weights1.b1 + this.weights1.w1*scent + this.weights1.w2*scentMemory+this.weights1.w3*this.turned;
+    let input2 = this.weights2.b1 + this.weights2.w1*scent + this.weights2.w2*scentMemory+this.weights2.w3*this.turned;
     let output1 = this.actFunc1(input1);
     let output2 = this.actFunc2(input2);
     return {
@@ -210,8 +213,8 @@ export class Apple {
       return img;
     });
     this.shadowColor = shadowColor;
-    this.sizeX = this.w * Math.log(this.intensity/1000);
-    this.sizeY = this.h * Math.log(this.intensity/1000);
+    this.sizeX = this.w * Math.log(this.intensity/2e5);
+    this.sizeY = this.h * Math.log(this.intensity/2e5);
     this.eaten = false;
     this.eatenIter=null;
   }
@@ -301,26 +304,17 @@ export function createRandomWorm(game, size, worm_sprite_images_paths,
         let activation1 = brain.twoNeuronsN1Activation;
         let activation2 = brain.twoNeuronsN2Activation;
         let weights1 = {
-          // b1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
-          // w1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
-          // w2: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
-          b1: extra.randomUniformInterval(-1, 1),
-          w1: extra.randomUniformInterval(-1, 1),
-          w2: extra.randomUniformInterval(-1, 1),
-          // b1: 0,
-          // w1: 1,
-          // w2: -1,
+          b1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
+          w1: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
+          w2: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
+          w3: extra.randomBm(brain.twoNeuronsN1Mean, Math.pow(brain.twoNeuronsN1Std, 2)),
         };
         let weights2 = {
-          // b1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
-          // w1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
-          // w2: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
-          b1: extra.randomUniformInterval(-1, 1),
-          w1: extra.randomUniformInterval(-1, 1),
-          w2: extra.randomUniformInterval(-1, 1),
-          // b1: 0,
-          // w1: 1,
-          // w2: 1,
+          // let's make it easier
+          b1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
+          w1: extra.randomBm(brain.twoNeuronsN2Mean-0.5, Math.pow(brain.twoNeuronsN2Std, 2)),
+          w2: extra.randomBm(brain.twoNeuronsN2Mean+0.5, Math.pow(brain.twoNeuronsN2Std, 2)),
+          w3: extra.randomBm(brain.twoNeuronsN2Mean, brain.twoNeuronsN2Std/1e5),
         };
         worm.brain = new BrainTwoNeurons(arch, weights1, activation1, weights2, activation2);
         break;
@@ -422,11 +416,13 @@ function randomizeBrain(brain, variance) {
       b1: extra.randomBm(brain.weights1.b1, variance),
       w1: extra.randomBm(brain.weights1.w1, variance),
       w2: extra.randomBm(brain.weights1.w2, variance),
+      w3: extra.randomBm(brain.weights1.w2, variance),
     };
     let weights2 = {
       b1: extra.randomBm(brain.weights2.b1, variance),
       w1: extra.randomBm(brain.weights2.w1, variance),
       w2: extra.randomBm(brain.weights2.w2, variance),
+      w3: extra.randomBm(brain.weights2.w2, variance),
     };
     return new BrainTwoNeurons(arch, weights1, activation1, weights2, activation2);
   }

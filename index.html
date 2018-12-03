@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <!--
 two-neurons-worm
-This is a project for creating a worm that find it's food using only
-two neurons:
+This is a project for creating a worm that find it's food using two neurons:
 https://phys.org/news/2018-07-reveals-complex-math-worms-food.html
 
 Copyright (C) 2017  Luiz Eduardo Amaral - <luizamaral306@gmail.com>
@@ -21,7 +20,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 <head>
   <title>TWO NEURONS WORM</title>
-  <meta name="description" content="This is a project for creating a worm that find it's food using only two neurons.">
+  <meta name="description" content="This is a project for creating a worm that find it's food using two neurons.">
   <link id="favicon" rel="icon" href="./assets/img/favicon.ico" type="image/x-icon">
   <meta charset="utf-8">
   <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.5.0/css/all.css" integrity="sha384-B4dIYHKNBt8Bc12p+WXckhzcICo0wtJAoU8YZTY5qE0Id1GSseTk6S+L3BlXeVIU" crossorigin="anonymous">
@@ -40,22 +39,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:site" content="@ArmlessJohn404" />
   <meta name="twitter:creator" content="@ArmlessJohn404" />
-  <meta name="twitter:title" content="HAMURABI ALMOST FROM SCRATCH">
-  <meta name="twitter:description" content="This is a project for creating a worm that find it's food using only two neurons.">
-  <meta name="twitter:image" content="https://github.com/ArmlessJohn404/tetris-almost-from-scratch/raw/master/assets/opengraph.png">
+  <meta name="twitter:title" content="TWO NEURONS WORM">
+  <meta name="twitter:description" content="This is a project for creating a worm that find it's food using two neurons.">
+  <meta name="twitter:image" content="https://github.com/ArmlessJohn404/two-neurons-worm/raw/master/assets/img/opengraph.png">
   <!-- opengraph -->
-  <meta property="og:title" content="HAMURABI ALMOST FROM SCRATCH" />
+  <meta property="og:title" content="TWO NEURONS WORM" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://armlessjohn404.github.io/tetris-almost-from-scratch/" />
-  <meta property="og:image" content="https://github.com/ArmlessJohn404/tetris-almost-from-scratch/raw/master/assets/opengraph.png" />
-  <meta property="og:image:width" content="925" />
-  <meta property="og:image:height" content="720" />
-  <meta property="og:description" content="This is a project for creating a worm that find it's food using only two neurons." />
+  <meta property="og:url" content="https://armlessjohn404.github.io/two-neurons-worm/" />
+  <meta property="og:image" content="https://github.com/ArmlessJohn404/two-neurons-worm/raw/master/assets/img/opengraph.png" />
+  <meta property="og:image:width" content="915" />
+  <meta property="og:image:height" content="915" />
+  <meta property="og:description" content="This is a project for creating a worm that find it's food using two neurons." />
 
   <!--  Schema.org -->
-  <meta itemprop="name" content="HAMURABI ALMOST FROM SCRATCH" />
-  <meta itemprop="description" content="This is a project for creating a worm that find it's food using only two neurons.">
-  <meta itemprop="image" content="https://github.com/ArmlessJohn404/tetris-almost-from-scratch/raw/master/assets/opengraph.png" />
+  <meta itemprop="name" content="TWO NEURONS WORM" />
+  <meta itemprop="description" content="This is a project for creating a worm that find it's food using two neurons.">
+  <meta itemprop="image" content="https://github.com/ArmlessJohn404/two-neurons-worm/raw/master/assets/img/opengraph.png" />
 
 </head>
 
@@ -69,28 +68,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <h3>Eaten: <span id="total-eaten-span"></span></h3>
         <h3>Iterations Left: <span id="remaining-iterations-span"></span></h3>
         <hr align="left">
+      </div>
+      <div class="run-div noselect">
+        <i class="fa fa-play run-btn cursor-pointer play-pause" onclick="togglePlay()"></i>
+        <i class="fa fa-pause run-btn cursor-pointer play-pause hide" onclick="togglePlay()"></i>
+        <i class="fa fa-stop run-btn cursor-pointer" onclick="toggleStop()"></i>
+        <i class="fa fa-undo run-btn cursor-pointer" onclick="reset()"></i>
+        <hr align="left">
+      </div>
+      <div class="generation-settings-div">
         <h3 style="display:inline;">Generation Settings</h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.generation-settings-box').forEach(node => node.classList.toggle('hide'));">show</span>
-        <div class="generation-settings-box">
+        <div class="generation-settings-box hide">
           <div class="slidecontainer">
             <p>Apples:</p>
-            <input type="range" min="1" max="1000" value="20" class="slider blue-slider" id="total-apples">
+            <input type="range" min="1" max="1000" value="100" class="slider blue-slider" id="total-apples">
           </div>
           <div class="slidecontainer">
             <p>Worms:</p>
-            <input type="range" min="1" max="1000" value="10" class="slider blue-slider" id="total-worms">
+            <input type="range" min="1" max="1000" value="20" class="slider blue-slider" id="total-worms">
           </div>
           <div class="slidecontainer">
             <p>Maximum Iterations:</p>
-            <input type="range" min="10" max="10000" value="500" class="slider blue-slider" id="maximum-iterations">
+            <input type="range" min="10" max="5000" value="300" class="slider blue-slider" id="maximum-iterations">
           </div>
           <div class="slidecontainer">
             <p>Speed:</p>
-            <input type="range" min="1" max="100" value="50" class="slider blue-slider" id="speed">
+            <input type="range" min="1" max="100" value="30" class="slider blue-slider" id="speed">
           </div>
           <div class="slidecontainer">
             <p>Mutation level:</p>
-            <input type="range" min="0" max="5" value="1" class="slider blue-slider" id="mutation-level">
+            <input type="range" min="0" max="5" value="3" class="slider blue-slider" id="mutation-level">
           </div>
           <div class="slidecontainer">
             <p>Random worms per generation (%):</p>
@@ -99,14 +107,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
         <hr align="left">
       </div>
-      <div class="run-div noselect">
-        <i class="fa fa-play run-btn cursor-pointer play-pause" onclick="togglePlay()"></i>
-        <i class="fa fa-pause run-btn cursor-pointer play-pause hide" onclick="togglePlay()"></i>
-        <i class="fa fa-stop run-btn cursor-pointer" onclick="toggleStop()"></i>
-        <i class="fa fa-undo run-btn cursor-pointer" onclick="reset()"></i>
-      </div>
       <div class="top-worms-div">
-        <hr align="left">
         <h3 style="margin-bottom: 0; display: inline;">Top Worms </h3>
         <span class="cursor-pointer underline noselect" onclick="document.getElementById('top-worms-table').classList.toggle('hide');">show</span>
         <table id="top-worms-table" class="hide">
@@ -115,32 +116,33 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <th>Worm</th>
             <th>Belly</th>
           </tr>
-          <tr>
+          <tr onclick="inspectWorm(0);" class="cursor-pointer">
             <td>1</td>
             <td id="worm0-name"></td>
             <td id="worm0-belly"></td>
           </tr>
-          <tr>
+          <tr onclick="inspectWorm(1);" class="cursor-pointer">
             <td>2</td>
             <td id="worm1-name"></td>
             <td id="worm1-belly"></td>
           </tr>
-          <tr>
+          <tr onclick="inspectWorm(2);" class="cursor-pointer">
             <td>3</td>
             <td id="worm2-name"></td>
             <td id="worm2-belly"></td>
           </tr>
-          <tr>
+          <tr onclick="inspectWorm(3);" class="cursor-pointer">
             <td>4</td>
             <td id="worm3-name"></td>
             <td id="worm3-belly"></td>
           </tr>
-          <tr>
+          <tr onclick="inspectWorm(4);" class="cursor-pointer">
             <td>5</td>
             <td id="worm4-name"></td>
             <td id="worm4-belly"></td>
           </tr>
         </table>
+        <hr align="left">
       </div>
       <div class="top-ancestors-div" style="margin-top: 1em;">
         <h3 style="margin-bottom: 0; display: inline;">Top Ancestors </h3>
@@ -183,6 +185,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <td id="ancestor4-breed"></td>
           </tr>
         </table>
+        <hr align="left">
       </div>
       <div class="eaten-graph-div" style="margin-top: 1em;">
         <h3 style="display: inline;">Eaten Graph <span class="toggle-eaten-graph">(%)&nbsp;&nbsp;</span><span class="toggle-eaten-graph hide">(a/w)</span> </h3>
@@ -192,6 +195,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           <div id="waiting-data" style="margin-top: 1em;">-WAITING FOR DATA-</div>
         </div>
       </div>
+      <hr align="left">
     </div>
     <div class="main-div">
       <canvas class="main-canvas" id="main-canvas">
@@ -201,7 +205,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       <div class="worms-brain">
         <h3 style="display:inline">Worms Brains</h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.worms-brain-box').forEach(node => node.classList.toggle('hide'));">show</span>
-        <div class="worms-brain-box">
+        <div class="worms-brain-box hide">
           <div style="margin-bottom: 0.2em;">
             <h4 style="margin-bottom: 0.2em;">Algorithm:</h4>
             <div class="custom-select" id="algorithm-select" style="margin-left: 50%;">
@@ -252,11 +256,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                   an apple and when it is going away.
                 </p>
                 <p>
-                  You can chose to arange them in series or paralel. It's also possible
-                  to chose the activation function for each one. The output of the
-                  neurons is then thrown into a sigmoid function, if the final value
-                  is greater than 0.5 the worm will continue straight, otherwise
-                  it will turn. This output also influences the size of the step.
+                  It's possible to chose the activation function for each neuron.
+                  The output of the first neuron dictates the size of the step.
+                  The output of the second neuron makes the worm turn if it's activated
+                  (output greater than 0.5).
                 </p>
                 <p>
                   The new random worms are sampled from a gaussian distribution and
@@ -269,14 +272,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </p>
               </div>
             </div>
-            <h4 style="margin-bottom: 0.2em;">Architecture</h4>
+            <!-- <p style="margin-bottom: 0.2em;">Architecture</p>
             <div class="custom-select" id="two-neuron-arch-select" style="margin-left: 50%;">
               <select>
                 <option></option>
                 <option>Parallel</option>
                 <option>Series</option>
               </select>
-            </div>
+            </div> -->
             <p style="margin-bottom: 0.2em;">Neuron 1 activation function</p>
             <div class="custom-select" id="two-neuron-n1-activation" style="margin-left: 50%;">
               <select>
@@ -288,13 +291,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <option>Step</option>
               </select>
             </div>
-            <div class="slidecontainer">
-              <p>Neuron 1 range - mean:</p>
+            <div class="slidecontainer hide">
+              <p>Neuron 1 - mean:</p>
               <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="two-neurons-n1-mean">
             </div>
             <div class="slidecontainer">
-              <p>Neuron 1 range - std:</p>
-              <input type="range" min="0" max="1" value="0.1" step="0.01" class="slider red-slider" id="two-neurons-n1-std">
+              <p>Neuron 1 - std:</p>
+              <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider red-slider" id="two-neurons-n1-std">
             </div>
             <p style="margin-bottom: 0.2em;">Neuron 2 activation function</p>
             <div class="custom-select" id="two-neuron-n2-activation" style="margin-left: 50%;">
@@ -307,13 +310,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <option>Step</option>
               </select>
             </div>
-            <div class="slidecontainer">
-              <p>Neuron 2 range - mean:</p>
+            <div class="slidecontainer hide">
+              <p>Neuron 2 - mean:</p>
               <input type="range" min="-1" max="1" value="0" step="0.1" class="slider" id="two-neurons-n2-mean">
             </div>
             <div class="slidecontainer">
-              <p>Neuron 2 range - std:</p>
-              <input type="range" min="0" max="1" value="0.1" step="0.01" class="slider red-slider" id="two-neurons-n2-std">
+              <p>Neuron 2 - std:</p>
+              <input type="range" min="0" max="1" value="0.5" step="0.01" class="slider red-slider" id="two-neurons-n2-std">
             </div>
           </div>
         </div>
@@ -322,7 +325,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       <div class="worm-settings">
         <h3 style="display:inline">Worms Bodies</h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.worms-settings-sliders').forEach(node => node.classList.toggle('hide'));">show</span>
-        <div class="worms-settings-sliders">
+        <div class="worms-settings-sliders hide">
           <div class="tooltip">
             <span class="cursor-pointer underline noselect">description</span>
             <div class="worm-settings-description text-left tooltiptext">
@@ -357,7 +360,74 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
           </div>
         </div>
         <hr align="right" />
-
+      </div>
+      <div class="inspect-worm">
+        <h3 style="display:inline;">Inspect Worm</h3>
+        <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.inspect-worm-box').forEach(node => node.classList.toggle('hide'));">show</span>
+        <div class="inspect-worm-box hide" style="margin-top: 1em;">
+          <p>click in a worm or in the <b>Top Worms</b> table</p>
+          <!-- <div class="worm-svg-container" style="display: flex; height: 20em;">
+            <img class="worm-svg" src="assets/img/worm-medium.svg" alt="worm" >
+          </div> -->
+          <div class="worm-values">
+            <div class="worm-name">
+              <h4 id="name-value">Name</h4>
+              <h4 id="belly-value">Belly</h4>
+              <h4 id="algorithm-value">Algorithm</h4>
+              <!-- <h4 id="arch-value">Architecture</h4> -->
+            </div>
+            <div class="random-walk-values hide">
+              <p>
+                Turning chance (%): <input type="number" min="0" max="100" step="1" id="turning-chance-value" onchange="updateValue('turning-chance-value')">
+              </p>
+            </div>
+            <div class="two-neurons-values hide">
+              <div class="neuron-1-values">
+                <h4>Neuron 1 - Step forward</h4>
+                <p>
+                  Bias: <input type="number" step="0.001" id="brain-n1-b1" onchange="updateValue('brain-n1-b1')">
+                </p>
+                <p>
+                  Input 1 (scent): <input type="number" step="0.001" id="brain-n1-w1" onchange="updateValue('brain-n1-w1')">
+                </p>
+                <p>
+                  Input 2 (previous scent): <input type="number" step="0.001" id="brain-n1-w2" onchange="updateValue('brain-n1-w2')">
+                </p>
+                <p>
+                  Input 3 (turned last iter): <input type="number" step="0.001" id="brain-n1-w3" onchange="updateValue('brain-n1-w3')">
+                </p>
+              </div>
+              <div class="neuron-2-values">
+                <h4>Neuron 2 - Turn</h4>
+                <p>
+                  Bias: <input type="number" step="0.001" id="brain-n2-b1" onchange="updateValue('brain-n2-b1')">
+                </p>
+                <p>
+                  Input 1 (scent): <input type="number" step="0.001" id="brain-n2-w1" onchange="updateValue('brain-n2-w1')">
+                </p>
+                <p>
+                  Input 2 (previous scent): <input type="number" step="0.001" id="brain-n2-w2" onchange="updateValue('brain-n2-w2')">
+                </p>
+                <p>
+                  Input 3 (turned last iter): <input type="number" step="0.001" id="brain-n2-w3" onchange="updateValue('brain-n2-w3')">
+                </p>
+              </div>
+            </div>
+            <div class="body-values">
+              <h4>Body</h4>
+              <p>
+                Maximum step: <input type="number" step="0.001" id="body-max-step" onchange="updateValue('body-max-step')">
+              </p>
+              <p>
+                Max left turn: <input type="number" step="0.001" id="body-turn-left" onchange="updateValue('body-turn-left')">
+              </p>
+              <p>
+                Max right turn: <input type="number" step="0.001" id="body-turn-right" onchange="updateValue('body-turn-right')">
+              </p>
+            </div>
+          </div>
+        </div>
+        <hr align="right" />
       </div>
     </div>
   </div>

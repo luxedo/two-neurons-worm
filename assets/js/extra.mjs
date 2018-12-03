@@ -1,7 +1,6 @@
 /*
 two-neurons-worm
-This is a project for creating a worm that find it's food using only
-two neurons:
+This is a project for creating a worm that find it's food using two neurons:
 https://phys.org/news/2018-07-reveals-complex-math-worms-food.html
 
 Copyright (C) 2017  Luiz Eduardo Amaral - <luizamaral306@gmail.com>
@@ -106,7 +105,11 @@ export function deromanize(str) {
 }
 
 export function degree2radians(degree) {
-  return degree * Math.PI/180;
+  return degree*Math.PI/180;
+}
+
+export function radians2degree(radians) {
+  return radians/Math.PI*180;
 }
 
 export function linear(a, b, x) {
