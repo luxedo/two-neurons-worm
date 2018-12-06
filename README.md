@@ -18,3 +18,14 @@ This is a project for creating a worm that find it's food using [two neurons](ht
 [See it working now!](https://armlessjohn404.github.io/two-neurons-worm/)
 
 ![imagem](assets/img/opengraph.png)
+
+## Suggested Improvements/Bugs
+1.Slow iterations when there's too much objects in the screen (Grijó).
+2.It's not mobile friendly/Other resolutions (Alcalá/Damas/Agostinho).
+3.Check `monospace` font (Damas).
+4.Update graph scale (Alcalá).
+5.Color generations (Alcalá).
+6.Add feedback for high *eaten* percentage (Alcalá).
+7.Adjust font size of the labels (Agostinho)
+
+Thank you guys for testing
