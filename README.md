@@ -1,10 +1,13 @@
 # TWO NEURONS WORM
 
-This is a project for creating a worm that find it's food using [two neurons](https://phys.org/news/2018-07-reveals-complex-math-worms-food.html). We will be creating a two perceptron network that hopefully can find it's path to food. The perceptrons are trained genetically.
+This is a simulation for creating a worm that find it's food using [two neurons](https://phys.org/news/2018-07-reveals-complex-math-worms-food.html).
+The worm has a two perceptron network that hopefully that leads it to the food.
+The worms are trained genetically, so if you leave them training long enough they
+should learn how how to find the food.
 
-### Check it running [here!](https://armlessjohn404.github.io/two-neurons-worm/)
+### Check it running [here!](https://luxedo.github.io/two-neurons-worm/)
 
-![imagem](assets/img/opengraph.png)
+![imagem](assets/img/screenshot.png)
 
 ## Suggested Improvements/Bugs
 

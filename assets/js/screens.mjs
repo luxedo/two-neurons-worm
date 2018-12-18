@@ -143,11 +143,12 @@ export class StartScreen extends BlankScreen {
     this.ctx.fillText("Two Neurons Worm", 100, 100);
     this.ctx.font = this.fontSub;
     this.ctx.fillText("RULES:", 100, 160);
-    this.ctx.fillText("← Mess with generation settings", 100, 200);
-    this.ctx.fillText("→ Mess with worms neurons", 100, 220);
+    this.ctx.fillText("• This is a simulator to teach worms to find food •", 100, 200);
+    this.ctx.fillText("← Mess with generation settings", 100, 220);
+    this.ctx.fillText("→ Mess with worms neurons", 100, 240);
     // this.ctx.fillText("• Have them eat 100% of the apples consistently •", 100, 240);
-    this.ctx.fillText("• Hit play and the worms will start learning •", 100, 240);
-    this.ctx.fillText("• BE THE VERY BEST WORM TRAINER •", 100, 260);
+    this.ctx.fillText("• Hit play and the worms will start learning •", 100, 260);
+    this.ctx.fillText("• BE THE VERY BEST WORM TRAINER •", 100, 280);
 
     // this.ctx.fillText("← CHOSE GENERATION SETTINGS", 100, 230);
     // this.ctx.fillText("← PRESS PLAY TO START TRAINING", 100, 250);
