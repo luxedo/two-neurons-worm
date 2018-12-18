@@ -7,7 +7,7 @@ should learn how how to find the food.
 
 ### Check it running [here!](https://luxedo.github.io/two-neurons-worm/)
 
-![imagem](assets/img/screenshot.png)
+![imagem](https://raw.githubusercontent.com/luxedo/two-neurons-worm/master/assets/img/screenshot.png)
 
 ## Suggested Improvements/Bugs
 
