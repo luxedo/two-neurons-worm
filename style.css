@@ -23,7 +23,7 @@ a:link, a:visited, a:hover, a:active {
 html, body {
   background-color: #222;
   color: #EEE;
-  font-family: "Courier New", Courier, "Lucida Console", Monaco, monospace;
+  font-family: "monospace, Courier New", Courier, "Lucida Console", Monaco;
   font-size: 14px;
   height: 100%;
   margin: 0;
@@ -133,7 +133,7 @@ svg {
 }
 
 .global-settings-control {
-  /* font-size: 1.2em; */
+  font-size: 1.2em;
 }
 
 .text-right {
@@ -156,8 +156,13 @@ svg {
   width: 30em;
 }
 
-
-@media screen and (max-width: 1617px) {
+@media screen and (max-width: 1617px) and (min-width: 1218px) {
+  .main-canvas {
+    height: 500px;
+    width: 500px;
+  }
+}
+@media screen and (max-width: 1217px) {
   .main-div {
     min-width: 100%;
   }
