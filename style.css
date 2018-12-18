@@ -23,7 +23,8 @@ a:link, a:visited, a:hover, a:active {
 html, body {
   background-color: #222;
   color: #EEE;
-  font-family: monospace;
+  font-family: "Courier New", Courier, "Lucida Console", Monaco, monospace;
+  font-size: 14px;
   height: 100%;
   margin: 0;
   padding: 0;
@@ -37,12 +38,28 @@ hr {
 
 .container {
   display: flex;
+  flex-flow: row wrap;
+  justify-content:space-around;
 }
 
 .container>div {
   flex: 1;
-  margin-bottom: 3em;
-  margin-top: 3em;
+}
+
+.left-pane {
+  margin-left: 8em;
+  margin-right: 2em;
+  order: 1;
+}
+.right-pane {
+  margin-left: 2em;
+  margin-right: 8em;
+  order: 4;
+}
+.main-div {
+  margin-top: 1em;
+  order: 2;
+  text-align: center;
 }
 
 .main-canvas {
@@ -52,16 +69,6 @@ hr {
   border-style: solid;
   border-width: 0.5em;
   box-shadow: 0 0 10px #555, 0 0 10px #555 inset;
-}
-
-.left-pane {
-  margin-left: 8em;
-  margin-right: 2em;
-}
-
-.right-pane {
-  margin-left: 2em;
-  margin-right: 8em;
 }
 
 .cursor-pointer {
@@ -126,7 +133,7 @@ svg {
 }
 
 .global-settings-control {
-  font-size: 1.2em;
+  /* font-size: 1.2em; */
 }
 
 .text-right {
@@ -147,4 +154,21 @@ svg {
   filter: drop-shadow(0 0 10px #0F0);
   transform: rotate(-90deg);
   width: 30em;
+}
+
+
+@media screen and (max-width: 1617px) {
+  .main-div {
+    min-width: 100%;
+  }
+  .left-pane {
+    margin-top: 2em;
+    order: 3;
+  }
+  .hidden-title {
+    display: block;
+  }
+  .title {
+    display: none;
+  }
 }

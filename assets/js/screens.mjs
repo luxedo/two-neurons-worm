@@ -103,8 +103,8 @@ export class StartScreen extends BlankScreen {
     this.color = "#EEE";
     this.wormsAmmount = 1;
     this.applesAmmount = 50;
-    this.fontTitle = `50px ${GLOBAL_CONF.FONT_STYLE}`;
-    this.fontSub = `20px ${GLOBAL_CONF.FONT_STYLE}`;
+    this.fontTitle = `50px ${GLOBAL_CONF.FONT_FAMILY}`;
+    this.fontSub = `16px ${GLOBAL_CONF.FONT_FAMILY}`;
 
     this.borderLimit = [GLOBAL_CONF.CANVAS_PADDING, this.game.width - GLOBAL_CONF.CANVAS_PADDING, GLOBAL_CONF.CANVAS_PADDING, this.game.height - GLOBAL_CONF.CANVAS_PADDING];
     this.borderFunc = extra.circleBorder(this.game.width / 2, this.game.height / 2 + 100, this.game.width / 3);
@@ -170,7 +170,13 @@ export class GameScreen extends BlankScreen {
 
     this.iter = 0;
     this.bangLevel = 12;
+
+    this.rampageLevelOscilation = Array(16).fill().map((v, i) => i + 100);
+    this.rampageLevelOscilation.push(...this.rampageLevelOscilation.slice(0).reverse());
+    this.rampageLevel = 0;
+
     this.eaten = 0;
+    this.eatenAllCountdown = 50;
     this.startingTime = startingTime || Date.now();
 
     let input = loadInputs();
@@ -202,7 +208,7 @@ export class GameScreen extends BlankScreen {
       return;
     }
     // Stopping conditions: 1. reached maxiter, 2. eaten all apples
-    if (this.iter >= this.maxiter || this.eaten === this.apples.length) {
+    if (this.iter >= this.maxiter || this.eatenAllCountdown == 0) {
       this.game.changeScreen(new StatsScreen(this.game), [this.worms, this.apples, this.generation, this.startingTime]);
     }
     this.maxiter = parseInt(document.getElementById("maximum-iterations").value);
@@ -229,6 +235,9 @@ export class GameScreen extends BlankScreen {
     this.eaten = this.apples.filter(apple => apple.eaten).length;
     if (this.eaten > lastEaten) {
       this.bangLevel += 3;
+    }
+    if (this.eaten == this.apples.length) {
+      this.eatenAllCountdown--;
     }
     this.iter++;
   }
@@ -257,18 +266,42 @@ export class GameScreen extends BlankScreen {
       }
     });
     glutton.map(worm => worm.drawText(`${maxEaten} Apples\n${worm.fullName}`));
-    this.ctx.font = `${this.bangLevel}px ${GLOBAL_CONF.FONT_STYLE}`;
-    this.ctx.shadowColor = "#00F";
 
-    this.bangLevel--;
-    this.bangLevel = this.bangLevel<80?this.bangLevel:80;
-    this.bangLevel = this.bangLevel>12?this.bangLevel:12;
-    this.ctx.fillText(`${this.eaten} Apples - ${(this.eaten/this.apples.length*100).toFixed(0)}%`, 10, this.game.height-10);
+    let percentage = (this.eaten/this.apples.length*100).toFixed(0);
+    let shakeX = extra.randomUniformInterval(-percentage/10, percentage/10);
+    let shakeY = extra.randomUniformInterval(-percentage/10, percentage/10);
+    this.ctx.font = `${this.bangLevel}px ${GLOBAL_CONF.FONT_FAMILY}`;
+    this.ctx.shadowColor = "#00F";
+    if (this.bangLevel > 60) {
+      this.ctx.fillText(`${this.eaten} Apples - ${percentage}%`, 20 + shakeX/2, this.game.height-20+shakeY/2);
+    } else {
+      this.ctx.fillText(`${this.eaten} Apples - ${percentage}%`, 20, this.game.height-20);
+    }
+    if (percentage > 80) {
+      let text = percentage > 90?"CONSPICUOUS\nEATER!":"RAMPAGE!";
+      text = percentage == 99?"ALMOST\nTHERE!":text;
+      text = percentage == 100?"CLEAN #$%&**#@\nPLATE!":text;
+      let fontSize = this.rampageLevelOscilation[this.rampageLevel]+this.bangLevel/10;
+      this.ctx.font = `${fontSize}px ${GLOBAL_CONF.FONT_FAMILY}`;
+      this.ctx.shadowColor = "#F00";
+      text.split("\n").map((line, idx) => {
+        this.ctx.fillText(line, this.game.width/2 - line.length*fontSize/3.2+20+shakeX, fontSize*(idx+1)+shakeY);
+      });
+      this.ctx.font = `${this.bangLevel}px ${GLOBAL_CONF.FONT_FAMILY}`;
+      this.ctx.shadowColor = "#00F";
+    }
 
     if (this.game.pause) {
-      this.ctx.font = `100px ${GLOBAL_CONF.FONT_STYLE}`;
+      this.ctx.font = `100px ${GLOBAL_CONF.FONT_FAMILY}`;
       this.ctx.shadowColor = "#0F0";
       this.ctx.fillText("Pause", this.game.width / 2 - 150, this.game.height / 2);
+    } else {
+      this.bangLevel--;
+      this.bangLevel = this.bangLevel<80?this.bangLevel:80;
+      this.bangLevel = this.bangLevel>12?this.bangLevel:12;
+      this.bangLevel = this.bangLevel>percentage/2?this.bangLevel:percentage/2;
+      this.rampageLevel += 2;
+      this.rampageLevel %= this.rampageLevelOscilation.length;
     }
   }
   updateDom() {
@@ -335,8 +368,8 @@ export class StatsScreen extends BlankScreen {
 
     this.color = "#EEE";
     this.wormColor = "#0F0";
-    this.fontTitle = `50px ${GLOBAL_CONF.FONT_STYLE}`;
-    this.fontSub = `20px ${GLOBAL_CONF.FONT_STYLE}`;
+    this.fontTitle = `50px ${GLOBAL_CONF.FONT_FAMILY}`;
+    this.fontSub = `16px ${GLOBAL_CONF.FONT_FAMILY}`;
     this.iter = 0;
     this.glowIter = 0;
     this.blurOscilation = Array(15).fill().map((v, i) => i + 10);
@@ -348,7 +381,7 @@ export class StatsScreen extends BlankScreen {
     this.game.foodPerWormHistory = this.game.foodPerWormHistory || [];
 
     this.game.eatenHistory.push(this.apples.filter(apple => apple.eaten).length / this.apples.length * 100);
-    this.game.foodPerWormHistory.push(this.apples.filter(apple => apple.eaten).length / this.worms.length * 100);
+    this.game.foodPerWormHistory.push(this.apples.filter(apple => apple.eaten).length / this.worms.length);
     plotPercentGraphs(this.game);
   }
   update() {
@@ -387,7 +420,7 @@ export class StatsScreen extends BlankScreen {
         });
         this.apples.filter(apple => !apple.eaten).map(apple => apple.draw());
       } else {
-        this.ctx.font = `50px ${GLOBAL_CONF.FONT_STYLE}`;
+        this.ctx.font = `50px ${GLOBAL_CONF.FONT_FAMILY}`;
         this.ctx.shadowColor = "#F00";
         this.ctx.fillText("Top Worms", 330, 100);
         this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
@@ -402,12 +435,12 @@ export class StatsScreen extends BlankScreen {
         this.borderWorms.map(worm => worm.draw());
       }
     } else {
-      this.ctx.font = `50px ${GLOBAL_CONF.FONT_STYLE}`;
-      this.ctx.shadowColor = "#F00";
-      this.ctx.fillText("End Gen", 340, this.game.height / 2 - 110);
-      if (this.iter < 3) this.ctx.fillText("Breeding.", 330, this.game.height / 2 - 50);
-      else if (this.iter < 6) this.ctx.fillText("Breeding..", 330, this.game.height / 2 - 50);
-      else this.ctx.fillText("Breeding...", 330, this.game.height / 2 - 50);
+      this.ctx.font = `100px ${GLOBAL_CONF.FONT_FAMILY}`;
+      this.ctx.shadowColor = "#00F";
+      this.ctx.fillText("End Gen", 220, this.game.height/2 - 110);
+      if (this.iter < 3) this.ctx.fillText("Breeding.", 180, this.game.height/2);
+      else if (this.iter < 6) this.ctx.fillText("Breeding..", 180, this.game.height/2);
+      else this.ctx.fillText("Breeding...", 180, this.game.height/2);
       this.ctx.font = GLOBAL_CONF.DEFAUT_FONT;
       this.worms.map(worm => worm.draw());
       this.apples.filter(apple => !apple.eaten).map(apple => apple.draw());
@@ -436,14 +469,12 @@ export class StatsScreen extends BlankScreen {
   }
 }
 
-export function plotLine(selector, data, width, height) {
+export function plotLine(selector, data, minData, maxData, width, height) {
   d3.selectAll(`${selector} > svg`).remove();
   if (data == undefined || data.length < 2) return "no data";
   if (data.length > width / 2) {
     data = data.slice(data.length - width / 2, data.length);
   }
-  let maxData = Math.max(...data);
-  let minData = Math.min(...data);
 
   data = data.map((d, index) => [index, d]);
 
@@ -531,9 +562,13 @@ export function plotPercentGraphs(game) {
   let retval;
   if (!document.querySelector(".eaten-graph-group").classList.contains("hide")) {
     if (game.percentGraph) {
-      retval = plotLine(".eaten-graph", game.foodPerWormHistory, width, height);
+      let minData = 0;
+      let maxData = Math.max(...game.foodPerWormHistory);
+      retval = plotLine(".eaten-graph", game.foodPerWormHistory, minData, maxData, width, height);
     } else {
-      retval = plotLine(".eaten-graph", game.eatenHistory, width, height);
+      let minData = 0;
+      let maxData = 105;
+      retval = plotLine(".eaten-graph", game.eatenHistory, minData, maxData, width, height);
     }
     if (retval != "no data") {
       document.getElementById("waiting-data").classList.add("hide");

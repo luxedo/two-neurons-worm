@@ -75,10 +75,10 @@ export class Worm {
     fontSize = fontSize || this.game.conf.FONT_SIZE;
     this.ctx.beginPath();
     this.ctx.shadowColor = color || this.shadowColor;
-    this.ctx.font =  `${fontSize}px ${this.game.conf.FONT_STYLE}`;
+    this.ctx.font =  `${fontSize}px ${this.game.conf.FONT_FAMILY}`;
     this.ctx.lineWidth = 2;
     this.ctx.moveTo(this.x, this.y);
-    let size = (fontSize - 8) * text.split("\n")[text.split("\n").length - 1].length;
+    let size = (fontSize - 6.5) * text.split("\n")[text.split("\n").length - 1].length;
     if (this.x > this.game.width - size) {
       this.ctx.lineTo(this.x - 35, this.y + 25);
       this.ctx.lineTo(this.x - (35+lineLength), this.y + 25);
@@ -191,6 +191,7 @@ export class BrainTwoNeurons extends NoBrain {
     let scent = apples.reduce((acc, apple) => acc+apple.scent(worm.x, worm.y), 0);
     let result = this.network(scent, this.scentMemory);
     this.turned = result.turn?1:0;
+    this.moved = !this.turned;
     this.scentMemory = scent;
     return result;
   }
@@ -268,7 +269,10 @@ export function createRandomWorm(game, size, worm_sprite_images_paths,
     x = extra.randomUniformInterval(minX, maxX);
     y = extra.randomUniformInterval(minY, maxY);
   } while (borderFunc != null && !borderFunc(x, y));
-  let color = "#0F0";
+  let red = Math.floor(extra.randomUniformInterval(0, 256)).toString(16).padStart(2, '0');
+  let blue = Math.floor(extra.randomUniformInterval(0, 256)).toString(16).padStart(2, '0');
+  let green = Math.floor(extra.randomUniformInterval(127, 256)).toString(16).padStart(2, '0');
+  let color = `#${red}${green}${blue}`;
   let azimuth = Math.random() * 2 * Math.PI;
 
   let firstName = names[Math.floor(Math.random() * names.length)].first_name;
@@ -312,9 +316,9 @@ export function createRandomWorm(game, size, worm_sprite_images_paths,
         let weights2 = {
           // let's make it easier
           b1: extra.randomBm(brain.twoNeuronsN2Mean, Math.pow(brain.twoNeuronsN2Std, 2)),
-          w1: extra.randomBm(brain.twoNeuronsN2Mean-0.5, Math.pow(brain.twoNeuronsN2Std, 2)),
-          w2: extra.randomBm(brain.twoNeuronsN2Mean+0.5, Math.pow(brain.twoNeuronsN2Std, 2)),
-          w3: extra.randomBm(brain.twoNeuronsN2Mean, brain.twoNeuronsN2Std/1e5),
+          w1: extra.randomBm(brain.twoNeuronsN2Mean-0.51, Math.pow(brain.twoNeuronsN2Std, 2)),
+          w2: extra.randomBm(brain.twoNeuronsN2Mean+0.49, Math.pow(brain.twoNeuronsN2Std, 2)),
+          w3: extra.randomBm(brain.twoNeuronsN2Mean, brain.twoNeuronsN2Std),
         };
         worm.brain = new BrainTwoNeurons(arch, weights1, activation1, weights2, activation2);
         break;

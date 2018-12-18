@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 import * as screen from './screens.mjs';
+import * as names from './names.mjs';
 
 /*
  * Configuration
@@ -23,14 +24,12 @@ import * as screen from './screens.mjs';
 var GLOBAL_CONF = {
   CANVAS_PADDING: 50,
   SHADOW_BLUR: 20,
-  FONT_STYLE: '"monospace"',
-  FONT_SIZE: 26,
+  FONT_FAMILY: 'monospace, Courier, Courier New',
+  FONT_SIZE: 20,
   MUTATION_LEVELS: [0, 1e-13, 1e-10, 1e-7, 1e-4, 1e-1],
+  NAMES: names.NAMES
 };
-GLOBAL_CONF.DEFAUT_FONT = `${GLOBAL_CONF.FONT_SIZE}px ${GLOBAL_CONF.FONT_STYLE}`;
-loadJSON('./assets/js/names.json', response => {
-  GLOBAL_CONF.NAMES = JSON.parse(response);
-});
+GLOBAL_CONF.DEFAUT_FONT = `${GLOBAL_CONF.FONT_SIZE}px ${GLOBAL_CONF.FONT_FAMILY}`;
 export {GLOBAL_CONF};
 
 /*
@@ -87,18 +86,4 @@ export class Game {
     }
     setTimeout(() => window.requestAnimationFrame(this.run.bind(this)), this.skipTicks/2);
   }
-}
-
-
-function loadJSON(uri, callback) {
-  let xobj = new XMLHttpRequest();
-  xobj.overrideMimeType("application/json");
-  xobj.open('GET', uri, true);
-  xobj.onreadystatechange = function() {
-    if (xobj.readyState == 4 && xobj.status == "200") {
-      // Required use of an anonymous callback as .open will NOT return a value but simply returns undefined in asynchronous mode
-      callback(xobj.responseText);
-    }
-  };
-  xobj.send(null);
 }

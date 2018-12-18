@@ -41,28 +41,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   <meta name="twitter:creator" content="@ArmlessJohn404" />
   <meta name="twitter:title" content="TWO NEURONS WORM">
   <meta name="twitter:description" content="This is a project for creating a worm that find it's food using two neurons.">
-  <meta name="twitter:image" content="https://github.com/ArmlessJohn404/two-neurons-worm/raw/master/assets/img/opengraph.png">
+  <meta name="twitter:image" content="https://github.com/luxedo/two-neurons-worm/raw/master/assets/img/opengraph.png">
   <!-- opengraph -->
   <meta property="og:title" content="TWO NEURONS WORM" />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://armlessjohn404.github.io/two-neurons-worm/" />
-  <meta property="og:image" content="https://github.com/ArmlessJohn404/two-neurons-worm/raw/master/assets/img/opengraph.png" />
-  <meta property="og:image:width" content="915" />
-  <meta property="og:image:height" content="915" />
+  <meta property="og:url" content="https://luxedo.github.io/two-neurons-worm/" />
+  <meta property="og:image" content="https://github.com/luxedo/two-neurons-worm/raw/master/assets/img/opengraph.png" />
+  <meta property="og:image:width" content="860" />
+  <meta property="og:image:height" content="860" />
   <meta property="og:description" content="This is a project for creating a worm that find it's food using two neurons." />
 
   <!--  Schema.org -->
   <meta itemprop="name" content="TWO NEURONS WORM" />
   <meta itemprop="description" content="This is a project for creating a worm that find it's food using two neurons.">
-  <meta itemprop="image" content="https://github.com/ArmlessJohn404/two-neurons-worm/raw/master/assets/img/opengraph.png" />
+  <meta itemprop="image" content="https://github.com/luxedo/two-neurons-worm/raw/master/assets/img/opengraph.png" />
 
 </head>
 
 <body onload="start()">
+  <h1 class="hide hidden-title" style="font-size: 3em; text-align: center;">Two Neurons Worm</h1>
   <div class="container">
     <div class="left-pane">
       <div class="general-info-div">
-        <h1>Two Neurons Worm</h1>
+        <h1 class="title" style="font-size: 2.5em;">Two Neurons Worm</h1>
         <h3>Elapsed: <span id="elapsed-span"></span></h3>
         <h3>Generation: <span id="generation-span"></span></h3>
         <h3>Eaten: <span id="total-eaten-span"></span></h3>
@@ -82,11 +83,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <div class="generation-settings-box hide">
           <div class="slidecontainer">
             <p>Apples:</p>
-            <input type="range" min="1" max="1000" value="100" class="slider blue-slider" id="total-apples">
+            <input type="range" min="1" max="200" value="100" class="slider blue-slider" id="total-apples">
           </div>
           <div class="slidecontainer">
             <p>Worms:</p>
-            <input type="range" min="1" max="1000" value="20" class="slider blue-slider" id="total-worms">
+            <input type="range" min="1" max="200" value="20" class="slider blue-slider" id="total-worms">
           </div>
           <div class="slidecontainer">
             <p>Maximum Iterations:</p>
@@ -201,7 +202,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       <canvas class="main-canvas" id="main-canvas">
       </canvas>
     </div>
-    <div class="right-pane text-right">
+    <div class="right-pane text-right" style="padding-top: 3em;">
       <div class="worms-brain">
         <h3 style="display:inline">Worms Brains</h3>
         <span class="cursor-pointer underline noselect" onclick="document.querySelectorAll('.worms-brain-box').forEach(node => node.classList.toggle('hide'));">show</span>
@@ -433,7 +434,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   </div>
   <div class="footer">
     <p>
-      <a href="https://github.com/ArmlessJohn404/tetris-almost-from-scratch">
+      <a href="https://github.com/luxedo/two-neurons-worm">
         <img src="assets/img/GitHub-Mark-Light-32px.png" /><span>Check it on GitHub!</span>
       </a>
     </p>
